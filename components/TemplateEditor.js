@@ -9,6 +9,29 @@ import { Badge } from "./ui/badge";
 import { msgPost } from "../lib/api";
 import toast from "react-hot-toast";
 
+// GSM-7 charset — anything outside this requires UCS-2 (Unicode) encoding
+const GSM7_REGEX = /^[@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !"#¤%&'()*+,\-.\/0-9:;<=>?¡A-ZÄÖÑÜa-zäöñüà^{}\\[\]~|€]*$/;
+
+function getSmsInfo(text) {
+  if (!text) return { chars: 0, parts: 1, isUnicode: false, limit: 160 };
+  const isUnicode = !GSM7_REGEX.test(text);
+  const singleLimit = isUnicode ? 70 : 160;
+  const multiLimit = isUnicode ? 67 : 153;
+  const len = text.length;
+  const parts = len <= singleLimit ? 1 : Math.ceil(len / multiLimit);
+  return { chars: len, parts, isUnicode, limit: singleLimit };
+}
+
+function SmsCounter({ text }) {
+  const { chars, parts, isUnicode, limit } = getSmsInfo(text);
+  return (
+    <p className="text-xs text-gray-500 mt-1">
+      {chars} chars | {parts} SMS part(s){" "}
+      {isUnicode && <span className="text-amber-600 font-medium">(Unicode — {limit} chars/SMS)</span>}
+    </p>
+  );
+}
+
 const VARIABLES = [
   "order_id",
   "order_number",
@@ -31,6 +54,7 @@ export default function TemplateEditor({ template, eventTopic, onSaved }) {
   const [name, setName] = useState(template?.name || EVENT_LABELS[eventTopic] || eventTopic);
   const [text, setText] = useState(template?.template_text || "");
   const [isActive, setIsActive] = useState(template?.is_active ?? true);
+  const [delayMinutes, setDelayMinutes] = useState(template?.delay_minutes || 0);
   const [saving, setSaving] = useState(false);
 
   const insertVariable = (v) => {
@@ -48,6 +72,7 @@ export default function TemplateEditor({ template, eventTopic, onSaved }) {
       name,
       template_text: text,
       is_active: isActive ? 1 : 0,
+      delay_minutes: Number(delayMinutes) || 0,
     });
 
     if (res?.status === 200) {
@@ -84,6 +109,18 @@ export default function TemplateEditor({ template, eventTopic, onSaved }) {
           </div>
         </div>
 
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-500 whitespace-nowrap">Send delay:</span>
+          <Input
+            type="number"
+            min={0}
+            value={delayMinutes}
+            onChange={(e) => setDelayMinutes(e.target.value)}
+            className="w-20 text-sm h-8"
+          />
+          <span className="text-xs text-gray-400">minutes (0 = immediate)</span>
+        </div>
+
         <Input
           placeholder="Template name"
           value={name}
@@ -111,9 +148,7 @@ export default function TemplateEditor({ template, eventTopic, onSaved }) {
             rows={3}
             className="text-sm"
           />
-          <p className="text-xs text-gray-500 mt-1">
-            {text.length} chars | {Math.ceil(text.length / 160) || 1} SMS part(s)
-          </p>
+          <SmsCounter text={text} />
         </div>
 
         {text && (

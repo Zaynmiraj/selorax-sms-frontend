@@ -23,22 +23,22 @@ export default function MessagingDashboard() {
   const queryClient = useQueryClient();
   const [topUpOpen, setTopUpOpen] = useState(false);
 
-  const { data: walletData, isLoading: loadingWallet } = useQuery({
+  const { data: walletData, isLoading: loadingWallet, isError: walletError } = useQuery({
     queryKey: ["messaging-wallet"],
     queryFn: () => msgGet("/wallet"),
   });
 
-  const { data: statsData, isLoading: loadingStats } = useQuery({
+  const { data: statsData, isLoading: loadingStats, isError: statsError } = useQuery({
     queryKey: ["messaging-stats"],
     queryFn: () => msgGet("/stats"),
   });
 
-  const { data: settingsData } = useQuery({
+  const { data: settingsData, isError: settingsError } = useQuery({
     queryKey: ["messaging-settings"],
     queryFn: () => msgGet("/settings"),
   });
 
-  const { data: logsData } = useQuery({
+  const { data: logsData, isError: logsError } = useQuery({
     queryKey: ["messaging-logs-recent"],
     queryFn: () => msgGet("/logs", { limit: 10 }),
   });
@@ -67,6 +67,8 @@ export default function MessagingDashboard() {
       {/* Wallet */}
       {loadingWallet ? (
         <Skeleton className="h-24 rounded-lg" />
+      ) : walletError ? (
+        <Card><CardContent className="p-4 text-sm text-red-600">Failed to load wallet data. Please refresh.</CardContent></Card>
       ) : (
         <WalletCard wallet={wallet} onTopUp={() => setTopUpOpen(true)} />
       )}
@@ -77,6 +79,8 @@ export default function MessagingDashboard() {
           Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-20 rounded-lg" />
           ))
+        ) : statsError ? (
+          <div className="col-span-full text-sm text-red-600 p-4">Failed to load stats.</div>
         ) : (
           <>
             <StatCard icon={<MessageSquare className="h-5 w-5 text-blue-500" />} label="Total Sent" value={stats?.total_sent || 0} />

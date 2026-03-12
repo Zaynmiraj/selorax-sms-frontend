@@ -8,17 +8,36 @@ import { msgPost } from "../lib/api";
 import { Send } from "lucide-react";
 import toast from "react-hot-toast";
 
+const GSM7_REGEX = /^[@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !"#¤%&'()*+,\-.\/0-9:;<=>?¡A-ZÄÖÑÜa-zäöñüà^{}\\[\]~|€]*$/;
+
+function getSmsInfo(text) {
+  if (!text) return { chars: 0, parts: 1, isUnicode: false };
+  const isUnicode = !GSM7_REGEX.test(text);
+  const singleLimit = isUnicode ? 70 : 160;
+  const multiLimit = isUnicode ? 67 : 153;
+  const len = text.length;
+  const parts = len <= singleLimit ? 1 : Math.ceil(len / multiLimit);
+  return { chars: len, parts, isUnicode };
+}
+
+const BD_PHONE_REGEX = /^(?:\+?880|0)1[3-9]\d{8}$/;
+
 export default function SendSmsForm({ wallet, onSent }) {
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
-  const smsParts = Math.ceil(message.length / 160) || 1;
+  const { parts: smsParts, isUnicode } = getSmsInfo(message);
   const costEstimate = (wallet?.price_per_sms || 0.5) * smsParts;
 
   const handleSend = async () => {
     if (!phone.trim()) {
       toast.error("Phone number is required");
+      return;
+    }
+    const cleanPhone = phone.trim().replace(/[\s\-()]+/g, "");
+    if (!BD_PHONE_REGEX.test(cleanPhone)) {
+      toast.error("Invalid phone number. Use format: 01XXXXXXXXX");
       return;
     }
     if (!message.trim()) {
@@ -66,7 +85,10 @@ export default function SendSmsForm({ wallet, onSent }) {
             rows={4}
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>{message.length} characters | {smsParts} SMS part(s)</span>
+            <span>
+              {message.length} characters | {smsParts} SMS part(s)
+              {isUnicode && <span className="text-amber-600 font-medium ml-1">(Unicode)</span>}
+            </span>
             <span>Cost: ~{costEstimate.toFixed(2)} BDT</span>
           </div>
         </div>

@@ -1,5 +1,7 @@
 "use client";
+import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "../../../components/ui/button";
 import { Card, CardContent } from "../../../components/ui/card";
 import { CheckCircle, XCircle } from "lucide-react";
@@ -14,11 +16,21 @@ import { CheckCircle, XCircle } from "lucide-react";
  */
 export default function BillingCallbackPage() {
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const paymentStatus = searchParams.get("payment");
   const chargeId = searchParams.get("charge_id");
 
   const isSuccess = paymentStatus === "success";
   const isFailed = paymentStatus === "failed";
+
+  // Invalidate wallet cache on successful payment so balance updates
+  useEffect(() => {
+    if (isSuccess) {
+      queryClient.invalidateQueries({ queryKey: ["messaging-wallet"] });
+      queryClient.invalidateQueries({ queryKey: ["messaging-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["messaging-stats"] });
+    }
+  }, [isSuccess, queryClient]);
 
   return (
     <div className="flex items-center justify-center min-h-[60vh]">

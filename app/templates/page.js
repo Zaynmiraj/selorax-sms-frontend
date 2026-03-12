@@ -14,7 +14,7 @@ const EVENT_TOPICS = [
 export default function TemplatesPage() {
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["messaging-templates"],
     queryFn: () => msgGet("/templates"),
   });
@@ -34,6 +34,14 @@ export default function TemplatesPage() {
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-48 rounded-lg" />
         ))}
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+        Failed to load templates. Please refresh the page.
       </div>
     );
   }

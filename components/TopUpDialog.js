@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { X } from "lucide-react";
@@ -12,6 +12,21 @@ const QUICK_AMOUNTS = [100, 500, 1000, 5000];
 export default function TopUpDialog({ open, onOpenChange, onSuccess }) {
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
+  const pollRef = useRef(null);
+
+  // Clean up polling on unmount or dialog close
+  useEffect(() => {
+    if (!open && pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, [open]);
 
   if (!open) return null;
 
@@ -26,12 +41,9 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess }) {
     const res = await msgPost("/payment/topup", { amount: numAmount });
 
     if (res?.data?.confirmation_url) {
-      // Send billing redirect to parent dashboard frame
-      // The dashboard will navigate to the charge approval page
       sendBillingRedirect(res.data.confirmation_url);
       toast.success("Redirecting to payment approval...");
 
-      // Poll for charge completion in the background
       if (res.data.charge_id) {
         pollCharge(res.data.charge_id);
       }
@@ -42,18 +54,22 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess }) {
     setLoading(false);
   };
 
-  const pollCharge = async (chargeId) => {
+  const pollCharge = (chargeId) => {
     let attempts = 0;
-    const interval = setInterval(async () => {
+    // Clear any existing poll
+    if (pollRef.current) clearInterval(pollRef.current);
+
+    pollRef.current = setInterval(async () => {
       attempts++;
       if (attempts > 120) {
-        // Stop after 10 minutes
-        clearInterval(interval);
+        clearInterval(pollRef.current);
+        pollRef.current = null;
         return;
       }
       const res = await msgGet(`/payment/verify/${chargeId}`);
       if (res?.data?.status === "active") {
-        clearInterval(interval);
+        clearInterval(pollRef.current);
+        pollRef.current = null;
         toast.success("Payment successful! Credits added.");
         onSuccess?.();
       } else if (
@@ -61,7 +77,8 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess }) {
         res?.data?.status === "cancelled" ||
         res?.data?.status === "expired"
       ) {
-        clearInterval(interval);
+        clearInterval(pollRef.current);
+        pollRef.current = null;
         toast.error("Payment was not completed.");
       }
     }, 5000);

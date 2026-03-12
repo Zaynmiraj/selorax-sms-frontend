@@ -6,6 +6,8 @@ const TABS = [
   { title: "Dashboard", href: "/" },
   { title: "Templates", href: "/templates" },
   { title: "Send SMS", href: "/send" },
+  { title: "History", href: "/history" },
+  { title: "Scheduled", href: "/scheduled" },
   { title: "Billing", href: "/billing" },
 ];
 
