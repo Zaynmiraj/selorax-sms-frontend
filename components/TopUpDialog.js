@@ -38,8 +38,12 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
     const res = await msgPost("/payment/topup", { package_id: selectedPkg.package_id });
 
     if (res?.data?.confirmation_url) {
-      sendBillingRedirect(res.data.confirmation_url);
+      const redirected = sendBillingRedirect(res.data.confirmation_url);
       toast.success("Redirecting to payment...");
+
+      if (!redirected) {
+        window.location.href = res.data.confirmation_url;
+      }
 
       if (res.data.charge_id) {
         pollCharge(res.data.charge_id);

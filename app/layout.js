@@ -30,7 +30,8 @@ function IframeRedirect() {
 
   useEffect(() => {
     if (pathname === "/" && typeof window !== "undefined" && window.self !== window.top) {
-      router.replace("/dashboard");
+      const search = window.location.search || "";
+      router.replace(`/dashboard${search}`);
     }
   }, [pathname, router]);
 

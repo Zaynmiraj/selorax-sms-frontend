@@ -85,7 +85,8 @@ function DashboardRedirect() {
     const hasStoreParam = searchParams.get("store_id") || searchParams.get("hmac");
     const isInIframe = typeof window !== "undefined" && window.self !== window.top;
     if (hasStoreParam || isInIframe) {
-      router.replace("/dashboard");
+      const search = typeof window !== "undefined" ? window.location.search || "" : "";
+      router.replace(`/dashboard${search}`);
     }
   }, [searchParams, router]);
 
