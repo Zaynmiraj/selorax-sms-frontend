@@ -37,6 +37,15 @@ export function AppBridgeProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    // Dev bypass: skip handshake when running standalone (not in iframe)
+    const isStandalone = typeof window !== "undefined" && window.self === window.top;
+    if (isStandalone && !hasCredentials()) {
+      setToken("dev_bypass");
+      setStoreId("2");
+      setReady(true);
+      return;
+    }
+
     // Already have credentials from a previous page navigation within the iframe
     if (hasCredentials()) {
       setToken(getToken());

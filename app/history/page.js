@@ -17,15 +17,13 @@ export default function HistoryPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [phoneSearch, setPhoneSearch] = useState("");
   const [searchValue, setSearchValue] = useState("");
+  const [eventTopic, setEventTopic] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["messaging-history", page, statusFilter, searchValue],
-    queryFn: () => msgGet("/logs", {
-      page,
-      limit: 25,
-      ...(statusFilter ? { status: statusFilter } : {}),
-      ...(searchValue ? { phone: searchValue } : {}),
-    }),
+    queryKey: ["messaging-history", page, statusFilter, searchValue, eventTopic, fromDate, toDate],
+    queryFn: () => msgGet("/logs", { page, limit: 25, status: statusFilter, phone: searchValue, event_topic: eventTopic, from_date: fromDate, to_date: toDate }),
   });
 
   const logs = data?.data?.logs || [];
@@ -72,6 +70,20 @@ export default function HistoryPage() {
               <Search className="h-3 w-3" />
             </Button>
           </div>
+          <select value={eventTopic} onChange={(e) => { setEventTopic(e.target.value); setPage(1); }} className="rounded-lg border border-gray-200 px-3 py-2 text-sm">
+            <option value="">All Events</option>
+            <option value="order.confirmed">Order Confirmed</option>
+            <option value="order.shipped">Order Shipped</option>
+            <option value="order.delivered">Order Delivered</option>
+            <option value="order.cancelled">Order Cancelled</option>
+            <option value="order.refunded">Order Refunded</option>
+            <option value="order.payment_received">Payment Received</option>
+            <option value="customer.welcome">New Customer</option>
+            <option value="campaign">Campaign</option>
+            <option value="manual">Manual</option>
+          </select>
+          <input type="date" value={fromDate} onChange={(e) => { setFromDate(e.target.value); setPage(1); }} className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+          <input type="date" value={toDate} onChange={(e) => { setToDate(e.target.value); setPage(1); }} className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
         </div>
       </div>
 

@@ -13,6 +13,7 @@ import {
 } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
+import { MessageSquare } from "lucide-react";
 import WalletCard from "../../components/WalletCard";
 import TopUpDialog from "../../components/TopUpDialog";
 import TransactionRow from "../../components/TransactionRow";
@@ -32,19 +33,27 @@ export default function BillingPage() {
     queryFn: () => msgGet("/wallet/transactions", { page, limit: 20 }),
   });
 
-  const { data: pricingData } = useQuery({
-    queryKey: ["messaging-pricing"],
-    queryFn: () => msgGet("/wallet/pricing"),
+  const { data: settingsData } = useQuery({
+    queryKey: ["messaging-settings"],
+    queryFn: () => msgGet("/settings"),
   });
 
   const wallet = walletData?.data;
+  const packages = wallet?.packages || [];
+  const smsCredits = wallet?.sms_credits || 0;
   const transactions = txnData?.data?.transactions || [];
   const totalTxn = txnData?.data?.total || 0;
-  const pricing = pricingData?.data || [];
+  const settings = settingsData?.data;
+  const autoRenew = settings?.auto_renew_enabled ? {
+    enabled: true,
+    packageName: packages.find(p => p.package_id === settings.auto_renew_package_id)?.name || "—",
+    threshold: settings.auto_renew_threshold || 50,
+  } : null;
 
   const refreshAll = () => {
     queryClient.invalidateQueries({ queryKey: ["messaging-wallet"] });
     queryClient.invalidateQueries({ queryKey: ["messaging-transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["messaging-stats"] });
   };
 
   return (
@@ -53,20 +62,32 @@ export default function BillingPage() {
       {loadingWallet ? (
         <Skeleton className="h-24 rounded-lg" />
       ) : (
-        <WalletCard wallet={wallet} onTopUp={() => setTopUpOpen(true)} />
+        <WalletCard smsCredits={smsCredits} onTopUp={() => setTopUpOpen(true)} autoRenew={autoRenew} />
       )}
 
-      {/* Pricing */}
-      {pricing.length > 0 && (
+      {/* Packages */}
+      {packages.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <h3 className="font-medium text-sm mb-2">Pricing</h3>
-            <div className="flex gap-4">
-              {pricing.map((p) => (
-                <div key={p.pricing_id} className="flex items-center gap-2">
-                  <Badge variant="outline">{p.provider}</Badge>
-                  <span className="text-sm font-medium">{parseFloat(p.price_per_sms).toFixed(2)} BDT</span>
-                  <span className="text-xs text-gray-500">per SMS</span>
+            <h3 className="font-medium text-sm mb-3">SMS Packages</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {packages.map((pkg) => (
+                <div
+                  key={pkg.package_id}
+                  className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50"
+                >
+                  <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                    <MessageSquare className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{pkg.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {Number(pkg.sms_count).toLocaleString()} SMS — ৳{parseFloat(pkg.price_per_sms).toFixed(2)}/SMS
+                    </p>
+                    <p className="text-xs font-semibold text-blue-600">
+                      ৳{Number(pkg.total_price).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -134,6 +155,7 @@ export default function BillingPage() {
         open={topUpOpen}
         onOpenChange={setTopUpOpen}
         onSuccess={refreshAll}
+        packages={packages}
       />
     </div>
   );

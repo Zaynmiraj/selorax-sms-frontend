@@ -1,38 +1,41 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LayoutDashboard, Zap, Megaphone, Clock, CreditCard, Settings } from "lucide-react";
 
 const TABS = [
-  { title: "Dashboard", href: "/" },
-  { title: "Templates", href: "/templates" },
-  { title: "Send SMS", href: "/send" },
-  { title: "History", href: "/history" },
-  { title: "Scheduled", href: "/scheduled" },
-  { title: "Billing", href: "/billing" },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Automations", href: "/automations", icon: Zap },
+  { label: "Campaigns", href: "/campaigns", icon: Megaphone },
+  { label: "History", href: "/history", icon: Clock },
+  { label: "Billing", href: "/billing", icon: CreditCard },
+  { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 export default function MessagingTabNav() {
   const path = usePathname();
 
   return (
-    <div className="mb-4 border-0 rounded-lg bg-gray-50 p-1 shadow-sm inline-flex">
+    <div className="mb-6 rounded-2xl bg-white border border-gray-100 p-1.5 inline-flex shadow-sm">
       {TABS.map((tab) => {
         const isActive =
           tab.href === "/"
             ? path === "/"
             : path.startsWith(tab.href);
+        const Icon = tab.icon;
 
         return (
           <Link
             key={tab.href}
             href={tab.href}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+            className={`rounded-xl px-4 py-2 text-xs font-medium transition-all flex items-center gap-1.5 ${
               isActive
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
+                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
             }`}
           >
-            {tab.title}
+            <Icon className="h-3.5 w-3.5" />
+            {tab.label}
           </Link>
         );
       })}

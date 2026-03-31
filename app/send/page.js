@@ -43,7 +43,7 @@ export default function SendPage() {
       {loadingWallet ? (
         <Skeleton className="h-48 rounded-lg" />
       ) : (
-        <SendSmsForm wallet={wallet} onSent={handleSent} />
+        <SendSmsForm smsCredits={wallet?.sms_credits || 0} onSent={handleSent} />
       )}
 
       {/* Recent Manual Sends */}

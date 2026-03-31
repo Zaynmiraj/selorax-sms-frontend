@@ -22,13 +22,12 @@ function getSmsInfo(text) {
 
 const BD_PHONE_REGEX = /^(?:\+?880|0)1[3-9]\d{8}$/;
 
-export default function SendSmsForm({ wallet, onSent }) {
+export default function SendSmsForm({ smsCredits = 0, onSent }) {
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
   const { parts: smsParts, isUnicode } = getSmsInfo(message);
-  const costEstimate = (wallet?.price_per_sms || 0.5) * smsParts;
 
   const handleSend = async () => {
     if (!phone.trim()) {
@@ -53,8 +52,8 @@ export default function SendSmsForm({ wallet, onSent }) {
       setPhone("");
       setMessage("");
       onSent?.();
-    } else if (res?.code === "insufficient_balance") {
-      toast.error("Insufficient balance. Please top up.");
+    } else if (res?.code === "insufficient_balance" || res?.data?.error === "insufficient_balance") {
+      toast.error("No SMS credits remaining. Please buy a package.");
     } else {
       toast.error(res?.message || "Failed to send SMS");
     }
@@ -89,13 +88,13 @@ export default function SendSmsForm({ wallet, onSent }) {
               {message.length} characters | {smsParts} SMS part(s)
               {isUnicode && <span className="text-amber-600 font-medium ml-1">(Unicode)</span>}
             </span>
-            <span>Cost: ~{costEstimate.toFixed(2)} BDT</span>
+            <span>Uses {smsParts} credit{smsParts !== 1 ? "s" : ""}</span>
           </div>
         </div>
 
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500">
-            Balance: <span className="font-medium">{wallet?.balance?.toFixed(2) || "0.00"} BDT</span>
+            Credits: <span className="font-medium">{smsCredits.toLocaleString()} SMS</span>
           </p>
           <Button onClick={handleSend} disabled={sending}>
             <Send className="h-4 w-4 mr-2" />
