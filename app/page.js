@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   MessageSquare, Zap, Megaphone, CreditCard,
@@ -77,11 +77,10 @@ const PACKAGES = [
   { name: "Enterprise", sms: 10000, price: 4500, perSms: "0.45", color: "from-gray-800 to-gray-900" },
 ];
 
-export default function LandingPage() {
+function DashboardRedirect() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // If opened from dashboard iframe (has store_id param) or inside iframe, redirect to dashboard
   useEffect(() => {
     const hasStoreParam = searchParams.get("store_id") || searchParams.get("hmac");
     const isInIframe = typeof window !== "undefined" && window.self !== window.top;
@@ -90,12 +89,17 @@ export default function LandingPage() {
     }
   }, [searchParams, router]);
 
+  return null;
+}
+
+export default function LandingPage() {
   const c1 = useCounter(50000);
   const c2 = useCounter(98);
   const c3 = useCounter(1200);
 
   return (
     <div className="min-h-screen bg-[#06070a] text-white overflow-hidden" style={{ fontFamily: "'Outfit', sans-serif" }}>
+      <Suspense fallback={null}><DashboardRedirect /></Suspense>
       {/* ── Animated gradient background ── */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-[-30%] left-[-20%] w-[70vw] h-[70vw] rounded-full opacity-15 blur-[120px] animate-pulse" style={{ background: "radial-gradient(circle, #3b82f6 0%, transparent 70%)", animationDuration: "8s" }} />
