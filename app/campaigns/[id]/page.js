@@ -41,7 +41,7 @@ export default function CampaignDetailPage() {
     });
 
     const campaign = data?.data;
-    const recipients = campaign?.recipients || [];
+    const recipients = campaign?.recipients?.recipients || [];
 
     if (isLoading) {
         return <div className="space-y-4">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)}</div>;
@@ -57,22 +57,24 @@ export default function CampaignDetailPage() {
     const canSend = campaign.status === "draft" || campaign.status === "scheduled";
 
     const handleSend = async () => {
-        if (!confirm("Start sending this campaign now?")) return;
         const res = await msgPost(`/campaigns/${id}/send`);
         if (res?.status === 200) {
             toast.success("Campaign sending started");
             queryClient.invalidateQueries({ queryKey: ["messaging-campaign-detail", id] });
+            queryClient.invalidateQueries({ queryKey: ["messaging-campaigns"] });
+            queryClient.invalidateQueries({ queryKey: ["messaging-campaigns-recent"] });
         } else {
             toast.error(res?.message || "Failed");
         }
     };
 
     const handleCancel = async () => {
-        if (!confirm("Cancel this campaign?")) return;
         const res = await msgPost(`/campaigns/${id}/cancel`);
         if (res?.status === 200) {
             toast.success("Campaign cancelled");
             queryClient.invalidateQueries({ queryKey: ["messaging-campaign-detail", id] });
+            queryClient.invalidateQueries({ queryKey: ["messaging-campaigns"] });
+            queryClient.invalidateQueries({ queryKey: ["messaging-campaigns-recent"] });
         } else {
             toast.error(res?.message || "Failed");
         }

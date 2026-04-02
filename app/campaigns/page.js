@@ -23,20 +23,20 @@ export default function CampaignsPage() {
 
     const handleAction = async (action, campaignId) => {
         if (action === "send") {
-            if (!confirm("Start sending this campaign now?")) return;
             const res = await msgPost(`/campaigns/${campaignId}/send`);
             if (res?.status === 200) {
                 toast.success("Campaign sending started");
                 queryClient.invalidateQueries({ queryKey: ["messaging-campaigns"] });
+                queryClient.invalidateQueries({ queryKey: ["messaging-campaigns-recent"] });
             } else {
                 toast.error(res?.message || "Failed to start");
             }
         } else if (action === "cancel") {
-            if (!confirm("Cancel this campaign?")) return;
             const res = await msgPost(`/campaigns/${campaignId}/cancel`);
             if (res?.status === 200) {
                 toast.success("Campaign cancelled");
                 queryClient.invalidateQueries({ queryKey: ["messaging-campaigns"] });
+                queryClient.invalidateQueries({ queryKey: ["messaging-campaigns-recent"] });
             } else {
                 toast.error(res?.message || "Failed to cancel");
             }
