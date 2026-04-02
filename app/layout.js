@@ -33,7 +33,7 @@ function PaymentReturnHandler() {
         if (res?.data?.status === "active" || res?.data?.status === "completed") {
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ["messaging-wallet"] }),
-            queryClient.invalidateQueries({ queryKey: ["messaging-transactions"] }),
+            queryClient.invalidateQueries({ queryKey: ["messaging-purchases"] }),
             queryClient.invalidateQueries({ queryKey: ["messaging-stats"] }),
             queryClient.invalidateQueries({ queryKey: ["messaging-logs-recent"] }),
             queryClient.invalidateQueries({ queryKey: ["messaging-campaigns-recent"] }),

@@ -7,16 +7,16 @@ import { Skeleton } from "../../components/ui/skeleton";
 import {
   Table,
   TableBody,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { MessageSquare } from "lucide-react";
 import WalletCard from "../../components/WalletCard";
 import TopUpDialog from "../../components/TopUpDialog";
-import TransactionRow from "../../components/TransactionRow";
+import { Badge } from "../../components/ui/badge";
 
 export default function BillingPage() {
   const queryClient = useQueryClient();
@@ -29,8 +29,8 @@ export default function BillingPage() {
   });
 
   const { data: txnData, isLoading: loadingTxn } = useQuery({
-    queryKey: ["messaging-transactions", page],
-    queryFn: () => msgGet("/wallet/transactions", { page, limit: 20 }),
+    queryKey: ["messaging-purchases", page],
+    queryFn: () => msgGet("/payment/purchases", { page, limit: 20 }),
   });
 
   const { data: settingsData } = useQuery({
@@ -41,7 +41,7 @@ export default function BillingPage() {
   const wallet = walletData?.data;
   const packages = wallet?.packages || [];
   const smsCredits = wallet?.sms_credits || 0;
-  const transactions = txnData?.data?.transactions || [];
+  const purchases = txnData?.data?.purchases || [];
   const totalTxn = txnData?.data?.total || 0;
   const settings = settingsData?.data;
   const autoRenew = settings?.auto_renew_enabled ? {
@@ -52,7 +52,7 @@ export default function BillingPage() {
 
   const refreshAll = () => {
     queryClient.invalidateQueries({ queryKey: ["messaging-wallet"] });
-    queryClient.invalidateQueries({ queryKey: ["messaging-transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["messaging-purchases"] });
     queryClient.invalidateQueries({ queryKey: ["messaging-stats"] });
   };
 
@@ -104,24 +104,57 @@ export default function BillingPage() {
           </div>
           {loadingTxn ? (
             <Skeleton className="h-24 m-4 rounded-lg" />
-          ) : transactions.length === 0 ? (
+          ) : purchases.length === 0 ? (
             <p className="p-4 text-sm text-gray-500 text-center">No transactions yet</p>
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Type</TableHead>
+                    <TableHead>Purchase</TableHead>
                     <TableHead>Amount</TableHead>
-                    <TableHead>Balance After</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Method</TableHead>
+                    <TableHead>SMS</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.map((txn) => (
-                    <TransactionRow key={txn.transaction_id} txn={txn} />
+                  {purchases.map((purchase) => (
+                    <TableRow key={purchase.purchase_id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-sm">{purchase.package_name || "SMS Purchase"}</p>
+                          <p className="text-xs text-gray-500 capitalize">{purchase.purchase_type || "package"}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium text-green-600">
+                        +{parseFloat(purchase.amount || 0).toFixed(2)} BDT
+                      </TableCell>
+                      <TableCell>{Number(purchase.sms_count || 0).toLocaleString()} SMS</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            purchase.status === "credited"
+                              ? "bg-green-100 text-green-700"
+                              : purchase.status === "pending"
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-red-100 text-red-700"
+                          }
+                        >
+                          {purchase.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {new Date(purchase.created_at).toLocaleDateString("en-BD", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
