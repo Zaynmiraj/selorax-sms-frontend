@@ -35,7 +35,7 @@ export default function WalletCard({ smsCredits, onTopUp, autoRenew }) {
           className="bg-white text-blue-700 hover:bg-blue-50 font-semibold shadow-lg shadow-black/10 rounded-xl px-5"
         >
           <Sparkles className="h-4 w-4 mr-1.5" />
-          Buy Package
+          Buy SMS
         </Button>
       </div>
     </div>

@@ -1,13 +1,17 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { X, MessageSquare, Check } from "lucide-react";
 import { msgPost, msgGet } from "../lib/api";
 import { sendBillingRedirect } from "../lib/app-bridge";
 import toast from "react-hot-toast";
 
+const CUSTOM_SMS_UNIT_PRICE = 0.70;
+
 export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = [] }) {
   const [selectedPkg, setSelectedPkg] = useState(null);
+  const [customSmsCount, setCustomSmsCount] = useState("");
   const [loading, setLoading] = useState(false);
   const pollRef = useRef(null);
 
@@ -17,7 +21,10 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
       clearInterval(pollRef.current);
       pollRef.current = null;
     }
-    if (!open) setSelectedPkg(null);
+    if (!open) {
+      setSelectedPkg(null);
+      setCustomSmsCount("");
+    }
     return () => {
       if (pollRef.current) {
         clearInterval(pollRef.current);
@@ -28,14 +35,27 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
 
   if (!open) return null;
 
+  const normalizedCustomCount = Number(customSmsCount);
+  const hasValidCustomCount = Number.isInteger(normalizedCustomCount) && normalizedCustomCount > 0;
+  const customTotalPrice = hasValidCustomCount
+    ? Number((normalizedCustomCount * CUSTOM_SMS_UNIT_PRICE).toFixed(2))
+    : 0;
+  const purchaseLabel = selectedPkg
+    ? `Buy ${selectedPkg.name} — ৳${Number(selectedPkg.total_price).toLocaleString()}`
+    : hasValidCustomCount
+      ? `Buy ${normalizedCustomCount.toLocaleString()} SMS — ৳${customTotalPrice.toLocaleString()}`
+      : "Select a package or enter SMS quantity";
+
   const handlePurchase = async () => {
-    if (!selectedPkg) {
-      toast.error("Please select a package");
+    if (!selectedPkg && !hasValidCustomCount) {
+      toast.error("Please select a package or enter a custom SMS quantity");
       return;
     }
 
     setLoading(true);
-    const res = await msgPost("/payment/topup", { package_id: selectedPkg.package_id });
+    const res = await msgPost("/payment/topup", selectedPkg
+      ? { package_id: selectedPkg.package_id }
+      : { sms_count: normalizedCustomCount });
 
     if (res?.data?.confirmation_url) {
       const redirected = sendBillingRedirect(res.data.confirmation_url);
@@ -100,7 +120,7 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
         </button>
 
         <h2 className="text-lg font-semibold mb-1">Buy SMS Package</h2>
-        <p className="text-sm text-gray-500 mb-5">Select a package to add SMS credits</p>
+        <p className="text-sm text-gray-500 mb-5">Choose a package or buy a custom SMS amount</p>
 
         <div className="grid gap-3">
           {packages.map((pkg) => {
@@ -108,7 +128,10 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
             return (
               <button
                 key={pkg.package_id}
-                onClick={() => setSelectedPkg(pkg)}
+                onClick={() => {
+                  setSelectedPkg(pkg);
+                  setCustomSmsCount("");
+                }}
                 className={`relative flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all ${
                   isSelected
                     ? "border-blue-600 bg-blue-50"
@@ -144,18 +167,50 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
           })}
         </div>
 
+        <div className="mt-4 rounded-xl border border-dashed border-gray-300 bg-gray-50/70 p-4 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">Custom SMS quantity</h3>
+              <p className="text-xs text-gray-500">Buy exactly the number of SMS you need at ৳0.70 per SMS</p>
+            </div>
+            {hasValidCustomCount && !selectedPkg && (
+              <div className="h-5 w-5 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+                <Check className="h-3 w-3 text-white" />
+              </div>
+            )}
+          </div>
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <label className="text-xs font-medium text-gray-500 mb-1 block">SMS quantity</label>
+              <Input
+                type="number"
+                min={1}
+                step={1}
+                value={customSmsCount}
+                onChange={(e) => {
+                  setSelectedPkg(null);
+                  setCustomSmsCount(e.target.value);
+                }}
+                placeholder="e.g. 250"
+              />
+            </div>
+            <div className="min-w-[130px] rounded-lg border border-gray-200 bg-white px-3 py-2">
+              <p className="text-[11px] text-gray-500">Total</p>
+              <p className="text-sm font-semibold text-gray-900">
+                ৳{customTotalPrice.toLocaleString(undefined, { minimumFractionDigits: hasValidCustomCount && !Number.isInteger(customTotalPrice) ? 2 : 0, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {packages.length === 0 && (
           <p className="text-sm text-gray-400 text-center py-6">No packages available</p>
         )}
 
         <div className="flex justify-end gap-2 mt-6">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handlePurchase} disabled={loading || !selectedPkg}>
-            {loading
-              ? "Processing..."
-              : selectedPkg
-              ? `Buy ${selectedPkg.name} — ৳${Number(selectedPkg.total_price).toLocaleString()}`
-              : "Select a package"}
+          <Button onClick={handlePurchase} disabled={loading || (!selectedPkg && !hasValidCustomCount)}>
+            {loading ? "Processing..." : purchaseLabel}
           </Button>
         </div>
       </div>

@@ -40,7 +40,7 @@ export default function AudienceSelector({ onPhonesChange }) {
         const next = new Set(selectedPhones);
         if (next.has(phone)) next.delete(phone); else next.add(phone);
         setSelectedPhones(next);
-        onPhonesChange([...next], "manual");
+        onPhonesChange([...next], "filter");
     };
 
     const selectAll = () => {
@@ -49,7 +49,7 @@ export default function AudienceSelector({ onPhonesChange }) {
             .filter(p => BD_PHONE_REGEX.test(p));
         const next = new Set(phones);
         setSelectedPhones(next);
-        onPhonesChange([...next], "manual");
+        onPhonesChange([...next], "filter");
     };
 
     const manualCount = rawText
