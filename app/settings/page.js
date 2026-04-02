@@ -116,7 +116,7 @@ export default function SettingsPage() {
                                     type="number"
                                     value={settings.auto_renew_threshold || 50}
                                     onChange={(e) => updateField("auto_renew_threshold", Number(e.target.value))}
-                                    min={10}
+                                    min={15}
                                     max={1000}
                                     className="w-32"
                                 />
