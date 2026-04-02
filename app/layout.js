@@ -1,12 +1,54 @@
 "use client";
 import "./globals.css";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AppBridgeProvider } from "../contexts/AppBridgeContext";
 import MessagingTabNav from "../components/MessagingTabNav";
 import { LogoFull } from "../components/Logo";
+import { msgGet } from "../lib/api";
+
+function PaymentReturnHandler() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [handledKey, setHandledKey] = useState(null);
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    const chargeId = searchParams.get("charge_id");
+
+    if (!paymentStatus || !chargeId) return;
+
+    const currentKey = `${paymentStatus}:${chargeId}:${pathname}`;
+    if (handledKey === currentKey) return;
+    setHandledKey(currentKey);
+
+    const finalizeReturn = async () => {
+      if (paymentStatus === "success") {
+        const res = await msgGet(`/payment/verify/${chargeId}`);
+
+        if (res?.data?.status === "active" || res?.data?.status === "completed") {
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["messaging-wallet"] }),
+            queryClient.invalidateQueries({ queryKey: ["messaging-transactions"] }),
+            queryClient.invalidateQueries({ queryKey: ["messaging-stats"] }),
+            queryClient.invalidateQueries({ queryKey: ["messaging-logs-recent"] }),
+            queryClient.invalidateQueries({ queryKey: ["messaging-campaigns-recent"] }),
+          ]);
+        }
+      }
+
+      router.replace(pathname);
+    };
+
+    finalizeReturn();
+  }, [handledKey, pathname, queryClient, router, searchParams]);
+
+  return null;
+}
 
 function AppShell({ children }) {
   return (
@@ -15,6 +57,7 @@ function AppShell({ children }) {
       <div className="mt-4 mb-2">
         <MessagingTabNav />
       </div>
+      <PaymentReturnHandler />
       <main>{children}</main>
     </div>
   );
