@@ -23,7 +23,8 @@ export default function AudienceSelector({ onPhonesChange }) {
         enabled: tab === "filter",
     });
 
-    const customers = customerData?.data?.customers || customerData?.data || [];
+    const customerFetchFailed = customerData?.status && customerData.status !== 200;
+    const customers = customerFetchFailed ? [] : (customerData?.data?.customers || customerData?.data || []);
 
     // Parse manual input
     const handleManualChange = (text) => {
@@ -103,6 +104,10 @@ export default function AudienceSelector({ onPhonesChange }) {
                     </div>
                     {isLoading ? (
                         <Skeleton className="h-40 rounded-lg" />
+                    ) : customerFetchFailed ? (
+                        <p className="text-sm text-red-500 text-center py-6">
+                            {customerData?.message || "Failed to fetch customers"}
+                        </p>
                     ) : customers.length === 0 ? (
                         <p className="text-sm text-gray-400 text-center py-6">No customers found</p>
                     ) : (
