@@ -8,6 +8,7 @@ import { sendBillingRedirect } from "../lib/app-bridge";
 import toast from "react-hot-toast";
 
 const CUSTOM_SMS_UNIT_PRICE = 0.70;
+const MIN_CUSTOM_SMS_COUNT = 15;
 
 export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = [] }) {
   const [selectedPkg, setSelectedPkg] = useState(null);
@@ -36,7 +37,7 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
   if (!open) return null;
 
   const normalizedCustomCount = Number(customSmsCount);
-  const hasValidCustomCount = Number.isInteger(normalizedCustomCount) && normalizedCustomCount > 0;
+  const hasValidCustomCount = Number.isInteger(normalizedCustomCount) && normalizedCustomCount >= MIN_CUSTOM_SMS_COUNT;
   const customTotalPrice = hasValidCustomCount
     ? Number((normalizedCustomCount * CUSTOM_SMS_UNIT_PRICE).toFixed(2))
     : 0;
@@ -48,7 +49,7 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
 
   const handlePurchase = async () => {
     if (!selectedPkg && !hasValidCustomCount) {
-      toast.error("Please select a package or enter a custom SMS quantity");
+      toast.error(`Minimum custom purchase is ${MIN_CUSTOM_SMS_COUNT} SMS`);
       return;
     }
 
@@ -171,7 +172,7 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-gray-900">Custom SMS quantity</h3>
-              <p className="text-xs text-gray-500">Buy exactly the number of SMS you need at ৳0.70 per SMS</p>
+              <p className="text-xs text-gray-500">Buy exactly the number of SMS you need at ৳0.70 per SMS. Minimum {MIN_CUSTOM_SMS_COUNT} SMS.</p>
             </div>
             {hasValidCustomCount && !selectedPkg && (
               <div className="h-5 w-5 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
@@ -184,14 +185,14 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
               <label className="text-xs font-medium text-gray-500 mb-1 block">SMS quantity</label>
               <Input
                 type="number"
-                min={1}
+                min={MIN_CUSTOM_SMS_COUNT}
                 step={1}
                 value={customSmsCount}
                 onChange={(e) => {
                   setSelectedPkg(null);
                   setCustomSmsCount(e.target.value);
                 }}
-                placeholder="e.g. 250"
+                placeholder={`Minimum ${MIN_CUSTOM_SMS_COUNT} SMS`}
               />
             </div>
             <div className="min-w-[130px] rounded-lg border border-gray-200 bg-white px-3 py-2">
@@ -201,6 +202,11 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
               </p>
             </div>
           </div>
+          {!selectedPkg && customSmsCount && !hasValidCustomCount && (
+            <p className="text-xs font-medium text-amber-700">
+              Minimum custom purchase is {MIN_CUSTOM_SMS_COUNT} SMS.
+            </p>
+          )}
         </div>
 
         {packages.length === 0 && (
