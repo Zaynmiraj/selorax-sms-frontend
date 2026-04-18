@@ -6,6 +6,7 @@ import { Switch } from "./ui/switch";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Badge } from "./ui/badge";
+import SmsPreview, { SAMPLE_VALUES } from "./SmsPreview";
 import { msgPut } from "../lib/api";
 import toast from "react-hot-toast";
 import { Save, Clock, Zap, XCircle } from "lucide-react";
@@ -104,27 +105,37 @@ export default function AutomationCard({ automation, variables = [], onSaved }) 
               </div>
             )}
 
-            {/* Template */}
+            {/* Template + Live Preview */}
             {deliveryMode !== "off" && (
-              <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">SMS Template</label>
-                <Textarea
-                  value={templateText}
-                  onChange={(e) => setTemplateText(e.target.value)}
-                  placeholder="Write your SMS template here..."
-                  rows={3}
-                />
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {variables.map((v) => (
-                    <button
-                      key={v}
-                      onClick={() => insertVariable(v)}
-                      className="px-2 py-0.5 rounded text-[10px] font-mono bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    >
-                      {`{{${v}}}`}
-                    </button>
-                  ))}
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Editor */}
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1 block">SMS Template</label>
+                  <Textarea
+                    value={templateText}
+                    onChange={(e) => setTemplateText(e.target.value)}
+                    placeholder="Write your SMS template here..."
+                    rows={5}
+                  />
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {variables.map((v) => (
+                      <button
+                        key={v}
+                        onClick={() => insertVariable(v)}
+                        className="px-2 py-0.5 rounded text-[10px] font-mono bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                      >
+                        {`{{${v}}}`}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Live Preview */}
+                <SmsPreview
+                  text={templateText}
+                  values={SAMPLE_VALUES}
+                  note="Preview uses sample data. Real values are substituted at send time."
+                />
               </div>
             )}
 

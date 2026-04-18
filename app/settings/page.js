@@ -45,11 +45,6 @@ export default function SettingsPage() {
             auto_renew_enabled: settings.auto_renew_enabled,
             auto_renew_package_id: settings.auto_renew_package_id,
             auto_renew_threshold: settings.auto_renew_threshold,
-            use_own_provider: settings.use_own_provider,
-            provider: settings.provider,
-            api_key: settings.api_key,
-            sender_id: settings.sender_id,
-            provider_endpoint: settings.provider_endpoint,
         });
         if (res?.status === 200) {
             toast.success("Settings saved");
@@ -120,36 +115,6 @@ export default function SettingsPage() {
                                     max={1000}
                                     className="w-32"
                                 />
-                            </div>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* SMS Provider */}
-            <Card>
-                <CardContent className="p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="font-medium text-sm">Use Own SMS Provider</h3>
-                            <p className="text-xs text-gray-500">Use your own BulkSMS API credentials instead of the platform default</p>
-                        </div>
-                        <Switch checked={!!settings.use_own_provider} onCheckedChange={(v) => updateField("use_own_provider", v ? 1 : 0)} />
-                    </div>
-
-                    {!!settings.use_own_provider && (
-                        <div className="space-y-3 pl-1">
-                            <div>
-                                <label className="text-xs font-medium text-gray-500 mb-1 block">API Key</label>
-                                <Input value={settings.api_key || ""} onChange={(e) => updateField("api_key", e.target.value)} placeholder="Your BulkSMS API key" />
-                            </div>
-                            <div>
-                                <label className="text-xs font-medium text-gray-500 mb-1 block">Sender ID</label>
-                                <Input value={settings.sender_id || ""} onChange={(e) => updateField("sender_id", e.target.value)} placeholder="Sender phone number" />
-                            </div>
-                            <div>
-                                <label className="text-xs font-medium text-gray-500 mb-1 block">API Endpoint (optional)</label>
-                                <Input value={settings.provider_endpoint || ""} onChange={(e) => updateField("provider_endpoint", e.target.value)} placeholder="https://bulksmsbd.net/api/smsapi" />
                             </div>
                         </div>
                     )}

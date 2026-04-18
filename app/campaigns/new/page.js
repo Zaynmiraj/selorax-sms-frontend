@@ -8,21 +8,10 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import AudienceSelector from "../../../components/AudienceSelector";
+import SmsPreview, { calculateSmsInfo } from "../../../components/SmsPreview";
 import toast from "react-hot-toast";
 import { Send, Clock, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-
-const GSM7_REGEX = /^[@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !"#¤%&'()*+,\-.\/0-9:;<=>?¡A-ZÄÖÑÜa-zäöñüà^{}\\[\]~|€]*$/;
-
-function getSmsInfo(text) {
-    if (!text) return { chars: 0, parts: 1 };
-    const isUnicode = !GSM7_REGEX.test(text);
-    const singleLimit = isUnicode ? 70 : 160;
-    const multiLimit = isUnicode ? 67 : 153;
-    const len = text.length;
-    const parts = len <= singleLimit ? 1 : Math.ceil(len / multiLimit);
-    return { chars: len, parts, isUnicode };
-}
 
 export default function NewCampaignPage() {
     const router = useRouter();
@@ -40,7 +29,7 @@ export default function NewCampaignPage() {
     });
 
     const credits = walletData?.data?.sms_credits || 0;
-    const { parts, isUnicode } = getSmsInfo(message);
+    const { parts, isUnicode } = calculateSmsInfo(message);
     const totalCredits = phones.length * parts;
 
     const handlePhonesChange = (phoneList, type) => {
@@ -100,21 +89,29 @@ export default function NewCampaignPage() {
                 </CardContent>
             </Card>
 
-            {/* Message */}
+            {/* Message + Live Preview */}
             <Card>
                 <CardContent className="p-4">
                     <label className="text-sm font-medium mb-1 block">Message</label>
-                    <Textarea
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        placeholder="Write your SMS message..."
-                        rows={4}
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>
-                            {message.length} chars | {parts} SMS part{parts !== 1 ? "s" : ""}
-                            {isUnicode && <span className="text-amber-600 font-medium ml-1">(Unicode)</span>}
-                        </span>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                            <Textarea
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                placeholder="Write your SMS message..."
+                                rows={5}
+                            />
+                            <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>
+                                    {message.length} chars | {parts} SMS part{parts !== 1 ? "s" : ""}
+                                    {isUnicode && <span className="text-amber-600 font-medium ml-1">(Unicode)</span>}
+                                </span>
+                            </div>
+                        </div>
+                        <SmsPreview
+                            text={message}
+                            note={`This exact message will be sent to all ${phones.length || 0} recipients.`}
+                        />
                     </div>
                 </CardContent>
             </Card>
