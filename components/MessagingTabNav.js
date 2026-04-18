@@ -1,12 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Zap, Megaphone, Clock, CreditCard, Settings } from "lucide-react";
+import { LayoutDashboard, Zap, Megaphone, Send, Clock, CreditCard, Settings } from "lucide-react";
 
 const TABS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Automations", href: "/automations", icon: Zap },
   { label: "Campaigns", href: "/campaigns", icon: Megaphone },
+  { label: "Send SMS", href: "/send", icon: Send },
   { label: "History", href: "/history", icon: Clock },
   { label: "Billing", href: "/billing", icon: CreditCard },
   { label: "Settings", href: "/settings", icon: Settings },

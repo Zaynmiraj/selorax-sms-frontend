@@ -23,7 +23,8 @@ export function AppBridgeProvider({ children }) {
 
   /**
    * Request a fresh session token from the parent dashboard.
-   * Session tokens expire after 60 seconds.
+   * Platform session tokens have a 10-minute TTL; the auto-refresh interval
+   * below fires every 9 minutes to stay ahead of expiry.
    */
   const refreshToken = useCallback(async () => {
     try {

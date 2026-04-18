@@ -28,9 +28,32 @@ function PaymentReturnHandler() {
 
     const finalizeReturn = async () => {
       if (paymentStatus === "success") {
-        const res = await msgGet(`/payment/verify/${chargeId}`);
+        // Poll verify up to 6 times (every 5s, ~30s total) because the
+        // EPS → platform charge-status propagation can lag behind the redirect.
+        // Each verify call also triggers the backend's `creditPurchase` flow
+        // once the charge flips to active, so polling here is what actually
+        // credits the store's balance when there is a delay.
+        const MAX_ATTEMPTS = 6;
+        const DELAY_MS = 5000;
+        let credited = false;
 
-        if (res?.data?.status === "active" || res?.data?.status === "completed") {
+        for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+          const res = await msgGet(`/payment/verify/${chargeId}`);
+          const s = res?.data?.status;
+
+          if (s === "active" || s === "completed") {
+            credited = true;
+            break;
+          }
+          if (s === "declined" || s === "cancelled" || s === "expired") {
+            break;
+          }
+          if (attempt < MAX_ATTEMPTS - 1) {
+            await new Promise((r) => setTimeout(r, DELAY_MS));
+          }
+        }
+
+        if (credited) {
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ["messaging-wallet"] }),
             queryClient.invalidateQueries({ queryKey: ["messaging-purchases"] }),
@@ -41,7 +64,12 @@ function PaymentReturnHandler() {
         }
       }
 
-      router.replace(pathname);
+      // Don't strip the query params on the dedicated /billing/callback page —
+      // that page renders its UI based on `?payment=` and would flip to the
+      // "Payment Cancelled" state if we remove them here.
+      if (pathname !== "/billing/callback") {
+        router.replace(pathname);
+      }
     };
 
     finalizeReturn();
