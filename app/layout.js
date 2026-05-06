@@ -28,7 +28,14 @@ function PaymentReturnHandler() {
     const paymentStatus = normalizePaymentStatus(
       searchParams.get("payment") || searchParams.get("status")
     );
-    const chargeId = searchParams.get("charge_id") || searchParams.get("chargeId");
+    // Accept either name — backend EPS callback may emit charge_id (numeric
+    // platform ID) or tran_id (merchant_transaction_id). The verify endpoint
+    // accepts both via the same path param.
+    const chargeId =
+      searchParams.get("charge_id") ||
+      searchParams.get("chargeId") ||
+      searchParams.get("tran_id") ||
+      searchParams.get("tranId");
     const pendingChargeIds = getPendingTopupCharges();
     const chargeIds = [...new Set([chargeId, ...pendingChargeIds].filter(Boolean).map(String))];
 
