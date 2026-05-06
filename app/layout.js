@@ -8,6 +8,14 @@ import { AppBridgeProvider } from "../contexts/AppBridgeContext";
 import MessagingTabNav from "../components/MessagingTabNav";
 import { LogoFull } from "../components/Logo";
 import { msgGet } from "../lib/api";
+import {
+  addPendingTopupCharge,
+  clearPendingTopupCharge,
+  getPendingTopupCharges,
+  isCreditedChargeStatus,
+  isTerminalFailedChargeStatus,
+  normalizePaymentStatus,
+} from "../lib/payment-return-state.mjs";
 
 function PaymentReturnHandler() {
   const pathname = usePathname();
@@ -17,57 +25,69 @@ function PaymentReturnHandler() {
   const [handledKey, setHandledKey] = useState(null);
 
   useEffect(() => {
-    const paymentStatus = searchParams.get("payment");
-    const chargeId = searchParams.get("charge_id");
+    const paymentStatus = normalizePaymentStatus(
+      searchParams.get("payment") || searchParams.get("status")
+    );
+    const chargeId = searchParams.get("charge_id") || searchParams.get("chargeId");
+    const pendingChargeIds = getPendingTopupCharges();
+    const chargeIds = [...new Set([chargeId, ...pendingChargeIds].filter(Boolean).map(String))];
 
-    if (!paymentStatus || !chargeId) return;
+    if (paymentStatus === "success" && chargeId) {
+      addPendingTopupCharge(chargeId);
+    }
 
-    const currentKey = `${paymentStatus}:${chargeId}:${pathname}`;
+    if (chargeIds.length === 0) return;
+
+    const currentKey = `${paymentStatus || "pending"}:${chargeIds.join(",")}:${pathname}`;
     if (handledKey === currentKey) return;
     setHandledKey(currentKey);
 
     const finalizeReturn = async () => {
-      if (paymentStatus === "success") {
+      const shouldPoll = paymentStatus === "success";
+      const maxAttempts = shouldPoll ? 6 : 1;
+      let credited = false;
+
+      for (const id of chargeIds) {
         // Poll verify up to 6 times (every 5s, ~30s total) because the
         // EPS → platform charge-status propagation can lag behind the redirect.
         // Each verify call also triggers the backend's `creditPurchase` flow
         // once the charge flips to active, so polling here is what actually
         // credits the store's balance when there is a delay.
-        const MAX_ATTEMPTS = 6;
         const DELAY_MS = 5000;
-        let credited = false;
 
-        for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-          const res = await msgGet(`/payment/verify/${chargeId}`);
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          const res = await msgGet(`/payment/verify/${id}`);
           const s = res?.data?.status;
 
-          if (s === "active" || s === "completed") {
+          if (isCreditedChargeStatus(s)) {
             credited = true;
+            clearPendingTopupCharge(id);
             break;
           }
-          if (s === "declined" || s === "cancelled" || s === "expired") {
+          if (isTerminalFailedChargeStatus(s) || paymentStatus === "failed" || paymentStatus === "cancelled") {
+            clearPendingTopupCharge(id);
             break;
           }
-          if (attempt < MAX_ATTEMPTS - 1) {
+          if (attempt < maxAttempts - 1) {
             await new Promise((r) => setTimeout(r, DELAY_MS));
           }
         }
+      }
 
-        if (credited) {
-          await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ["messaging-wallet"] }),
-            queryClient.invalidateQueries({ queryKey: ["messaging-purchases"] }),
-            queryClient.invalidateQueries({ queryKey: ["messaging-stats"] }),
-            queryClient.invalidateQueries({ queryKey: ["messaging-logs-recent"] }),
-            queryClient.invalidateQueries({ queryKey: ["messaging-campaigns-recent"] }),
-          ]);
-        }
+      if (credited) {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["messaging-wallet"] }),
+          queryClient.invalidateQueries({ queryKey: ["messaging-purchases"] }),
+          queryClient.invalidateQueries({ queryKey: ["messaging-stats"] }),
+          queryClient.invalidateQueries({ queryKey: ["messaging-logs-recent"] }),
+          queryClient.invalidateQueries({ queryKey: ["messaging-campaigns-recent"] }),
+        ]);
       }
 
       // Don't strip the query params on the dedicated /billing/callback page —
       // that page renders its UI based on `?payment=` and would flip to the
       // "Payment Cancelled" state if we remove them here.
-      if (pathname !== "/billing/callback") {
+      if (paymentStatus && pathname !== "/billing/callback") {
         router.replace(pathname);
       }
     };

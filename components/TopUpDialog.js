@@ -5,6 +5,12 @@ import { Button } from "./ui/button";
 import { X, MessageSquare, Check } from "lucide-react";
 import { msgPost, msgGet } from "../lib/api";
 import { sendBillingRedirect } from "../lib/app-bridge";
+import {
+  addPendingTopupCharge,
+  clearPendingTopupCharge,
+  isCreditedChargeStatus,
+  isTerminalFailedChargeStatus,
+} from "../lib/payment-return-state.mjs";
 import toast from "react-hot-toast";
 
 const CUSTOM_SMS_UNIT_PRICE = 0.70;
@@ -59,6 +65,10 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
       : { sms_count: normalizedCustomCount });
 
     if (res?.data?.confirmation_url) {
+      if (res.data.charge_id) {
+        addPendingTopupCharge(res.data.charge_id);
+      }
+
       const redirected = sendBillingRedirect(res.data.confirmation_url);
       toast.success("Redirecting to payment...");
 
@@ -66,9 +76,7 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
         window.location.href = res.data.confirmation_url;
       }
 
-      if (res.data.charge_id) {
-        pollCharge(res.data.charge_id);
-      }
+      if (res.data.charge_id) pollCharge(res.data.charge_id);
       onOpenChange(false);
     } else {
       toast.error(res?.message || "Failed to create payment");
@@ -88,18 +96,16 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
         return;
       }
       const res = await msgGet(`/payment/verify/${chargeId}`);
-      if (res?.data?.status === "active") {
+      if (isCreditedChargeStatus(res?.data?.status)) {
         clearInterval(pollRef.current);
         pollRef.current = null;
+        clearPendingTopupCharge(chargeId);
         toast.success("Payment successful! SMS credits added.");
         onSuccess?.();
-      } else if (
-        res?.data?.status === "declined" ||
-        res?.data?.status === "cancelled" ||
-        res?.data?.status === "expired"
-      ) {
+      } else if (isTerminalFailedChargeStatus(res?.data?.status)) {
         clearInterval(pollRef.current);
         pollRef.current = null;
+        clearPendingTopupCharge(chargeId);
         toast.error("Payment was not completed.");
       }
     }, 5000);
