@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import SmsPreview, { calculateSmsInfo } from "./SmsPreview";
+import MessageCounter from "./MessageCounter";
 import { msgPost } from "../lib/api";
 import { Send } from "lucide-react";
 import toast from "react-hot-toast";
@@ -16,7 +17,7 @@ export default function SendSmsForm({ smsCredits = 0, onSent }) {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
-  const { parts: smsParts, isUnicode } = calculateSmsInfo(message);
+  const { parts: smsParts } = calculateSmsInfo(message);
 
   const handleSend = async () => {
     if (!phone.trim()) {
@@ -73,13 +74,7 @@ export default function SendSmsForm({ smsCredits = 0, onSent }) {
               onChange={(e) => setMessage(e.target.value)}
               rows={5}
             />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>
-                {message.length} characters | {smsParts} SMS part(s)
-                {isUnicode && <span className="text-amber-600 font-medium ml-1">(Unicode)</span>}
-              </span>
-              <span>Uses {smsParts} credit{smsParts !== 1 ? "s" : ""}</span>
-            </div>
+            <MessageCounter value={message} />
           </div>
           <SmsPreview
             text={message}

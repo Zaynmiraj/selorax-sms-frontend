@@ -2,8 +2,13 @@
 import { useMemo } from "react";
 import { MessageSquare } from "lucide-react";
 
-// GSM-7 character set — must stay in sync with the backend (models/messaging.js).
+// GSM-7 character set — used for the encoding badge. Billing is flat per
+// CHARS_PER_CREDIT regardless of encoding, but we still show the user whether
+// their message will be sent as Unicode (Bangla/emoji) or GSM-7.
 const GSM7_REGEX = /^[@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !"#¤%&'()*+,\-.\/0-9:;<=>?¡A-ZÄÖÑÜa-zäöñüà^{}\\[\]~|€]*$/;
+
+// Must stay in sync with selorax-messaging/models/messaging.js.
+const CHARS_PER_CREDIT = 70;
 
 // Sample values for automation template previews. Kept here so every preview
 // shows the same fake data and merchants build an intuition for it.
@@ -30,10 +35,9 @@ export function renderTemplate(text, values = {}) {
 export function calculateSmsInfo(message) {
   if (!message) return { chars: 0, parts: 1, isUnicode: false };
   const isUnicode = !GSM7_REGEX.test(message);
-  const singleLimit = isUnicode ? 70 : 160;
-  const multiLimit = isUnicode ? 67 : 153;
   const len = message.length;
-  const parts = len <= singleLimit ? 1 : Math.ceil(len / multiLimit);
+  // Flat billing: 1 credit per 70 characters, regardless of encoding.
+  const parts = Math.max(1, Math.ceil(len / CHARS_PER_CREDIT));
   return { chars: len, parts, isUnicode };
 }
 

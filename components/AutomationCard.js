@@ -6,7 +6,8 @@ import { Switch } from "./ui/switch";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Badge } from "./ui/badge";
-import SmsPreview, { SAMPLE_VALUES } from "./SmsPreview";
+import SmsPreview, { SAMPLE_VALUES, renderTemplate } from "./SmsPreview";
+import MessageCounter from "./MessageCounter";
 import { msgPut } from "../lib/api";
 import toast from "react-hot-toast";
 import { Save, Clock, Zap, XCircle } from "lucide-react";
@@ -117,7 +118,11 @@ export default function AutomationCard({ automation, variables = [], onSaved }) 
                     placeholder="Write your SMS template here..."
                     rows={5}
                   />
-                  <div className="flex flex-wrap gap-1 mt-2">
+                  {/* Counter shows credit cost based on the *rendered* preview
+                      (with sample values substituted), since that's closer to
+                      the real send length than the raw {{var}} template. */}
+                  <MessageCounter value={renderTemplate(templateText, SAMPLE_VALUES)} />
+                  <div className="flex flex-wrap gap-1 mt-3">
                     {variables.map((v) => (
                       <button
                         key={v}

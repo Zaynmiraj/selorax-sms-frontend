@@ -5,8 +5,8 @@ import { Toaster } from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AppBridgeProvider } from "../contexts/AppBridgeContext";
-import MessagingTabNav from "../components/MessagingTabNav";
-import { LogoFull } from "../components/Logo";
+import MessagingSidebar from "../components/MessagingSidebar";
+import { LogoIcon } from "../components/Logo";
 import { msgGet } from "../lib/api";
 import {
   addPendingTopupCharge,
@@ -107,13 +107,28 @@ function PaymentReturnHandler() {
 
 function AppShell({ children }) {
   return (
-    <div className="px-6 py-5 max-w-6xl mx-auto">
-      <LogoFull size={36} />
-      <div className="mt-4 mb-2">
-        <MessagingTabNav />
+    <div className="flex min-h-screen bg-gray-50">
+      <MessagingSidebar />
+      <div className="flex flex-1 flex-col min-w-0">
+        {/* Mobile-only top bar (sidebar hidden below md) */}
+        <header className="flex items-center gap-3 border-b border-gray-100 bg-white px-4 py-3 md:hidden">
+          <LogoIcon size={32} />
+          <div>
+            <h1
+              className="text-sm font-bold leading-tight tracking-tight text-gray-900"
+              style={{ fontFamily: "'Outfit', sans-serif" }}
+            >
+              Messaging
+            </h1>
+            <p className="text-[10px] leading-tight text-gray-500">by SeloraX</p>
+          </div>
+        </header>
+
+        <PaymentReturnHandler />
+        <main className="flex-1 overflow-y-auto px-5 py-6 sm:px-7 lg:px-8">
+          <div className="mx-auto max-w-5xl">{children}</div>
+        </main>
       </div>
-      <PaymentReturnHandler />
-      <main>{children}</main>
     </div>
   );
 }

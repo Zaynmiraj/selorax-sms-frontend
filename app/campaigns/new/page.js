@@ -9,6 +9,7 @@ import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import AudienceSelector from "../../../components/AudienceSelector";
 import SmsPreview, { calculateSmsInfo } from "../../../components/SmsPreview";
+import MessageCounter from "../../../components/MessageCounter";
 import toast from "react-hot-toast";
 import { Send, Clock, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -101,12 +102,7 @@ export default function NewCampaignPage() {
                                 placeholder="Write your SMS message..."
                                 rows={5}
                             />
-                            <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>
-                                    {message.length} chars | {parts} SMS part{parts !== 1 ? "s" : ""}
-                                    {isUnicode && <span className="text-amber-600 font-medium ml-1">(Unicode)</span>}
-                                </span>
-                            </div>
+                            <MessageCounter value={message} />
                         </div>
                         <SmsPreview
                             text={message}
