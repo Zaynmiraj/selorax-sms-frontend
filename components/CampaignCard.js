@@ -3,7 +3,8 @@ import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import Link from "next/link";
-import { Send, X, Eye, Users, MessageSquare } from "lucide-react";
+import { Send, X, Eye, Users, MessageSquare, Target } from "lucide-react";
+import { audienceLabel } from "../lib/audience";
 
 const STATUS_COLORS = {
     draft: "bg-gray-100 text-gray-700",
@@ -33,7 +34,8 @@ export default function CampaignCard({ campaign, onAction }) {
                 </div>
 
                 {/* Stats */}
-                <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                <div className="flex items-center gap-4 text-xs text-gray-500 mb-3 flex-wrap">
+                    <span className="flex items-center gap-1"><Target className="h-3 w-3" />{audienceLabel(campaign)}</span>
                     <span className="flex items-center gap-1"><Users className="h-3 w-3" />{campaign.total_recipients} recipients</span>
                     <span className="flex items-center gap-1"><MessageSquare className="h-3 w-3" />{campaign.sent_count} sent</span>
                     {campaign.failed_count > 0 && (

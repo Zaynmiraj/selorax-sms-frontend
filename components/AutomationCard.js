@@ -17,6 +17,20 @@ const GROUP_COLORS = {
   customer: "bg-purple-100 text-purple-700",
 };
 
+// Short explanation of when each automation fires, so merchants can tell them
+// apart (e.g. "Order Placed" vs "Order Confirmed"). Keyed by event_key.
+const EVENT_DESCRIPTIONS = {
+  "order.placed": "When a customer places an order from your storefront.",
+  "order.confirmed": "When you confirm or approve an order.",
+  "order.shipped": "When the order is shipped.",
+  "order.delivered": "When the order is delivered.",
+  "order.cancelled": "When the order is cancelled.",
+  "order.refunded": "When the order is returned or refunded.",
+  "order.payment_received": "When payment for the order is received.",
+  "customer.welcome": "When a new customer is created.",
+  "customer.updated": "When a customer's details are updated.",
+};
+
 const DELIVERY_MODES = [
   { value: "instant", label: "Instant", icon: Zap },
   { value: "delayed", label: "Delayed", icon: Clock },
@@ -55,12 +69,19 @@ export default function AutomationCard({ automation, variables = [], onSaved }) 
     <Card>
       <CardContent className="p-4 space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className="font-medium text-sm">{automation.event_label}</h3>
-            <Badge className={`text-[10px] ${GROUP_COLORS[automation.event_group] || ""}`}>
-              {automation.event_group}
-            </Badge>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium text-sm">{automation.event_label}</h3>
+              <Badge className={`text-[10px] ${GROUP_COLORS[automation.event_group] || ""}`}>
+                {automation.event_group}
+              </Badge>
+            </div>
+            {EVENT_DESCRIPTIONS[automation.event_key] && (
+              <p className="text-xs text-gray-500 mt-0.5">
+                {EVENT_DESCRIPTIONS[automation.event_key]}
+              </p>
+            )}
           </div>
           <Switch checked={isActive} onCheckedChange={setIsActive} />
         </div>

@@ -20,6 +20,9 @@ export default function NewCampaignPage() {
     const [message, setMessage] = useState("");
     const [phones, setPhones] = useState([]);
     const [audienceType, setAudienceType] = useState("manual");
+    const [segmentId, setSegmentId] = useState(null);
+    const [segmentCount, setSegmentCount] = useState(0);
+    const [segmentName, setSegmentName] = useState(null);
     const [scheduleEnabled, setScheduleEnabled] = useState(false);
     const [scheduledAt, setScheduledAt] = useState("");
     const [creating, setCreating] = useState(false);
@@ -31,18 +34,29 @@ export default function NewCampaignPage() {
 
     const credits = walletData?.data?.sms_credits || 0;
     const { parts, isUnicode } = calculateSmsInfo(message);
-    const totalCredits = phones.length * parts;
+    const isSegment = audienceType === "segment";
+    const recipientCount = isSegment ? segmentCount : phones.length;
+    const totalCredits = recipientCount * parts;
+    const hasAudience = isSegment ? !!segmentId : phones.length > 0;
 
-    const handlePhonesChange = (phoneList, type) => {
+    const handlePhonesChange = (phoneList, type, meta = {}) => {
         setPhones(phoneList);
         setAudienceType(type);
+        setSegmentId(type === "segment" ? (meta.segmentId ?? null) : null);
+        setSegmentCount(type === "segment" ? (meta.count ?? 0) : 0);
+        setSegmentName(type === "segment" ? (meta.name ?? null) : null);
     };
 
     const handleCreate = async () => {
         if (!name.trim()) { toast.error("Campaign name is required"); return; }
         if (!message.trim()) { toast.error("Message is required"); return; }
-        if (phones.length === 0) { toast.error("Add at least one phone number"); return; }
-        if (totalCredits > credits) { toast.error(`Not enough credits. Need ${totalCredits}, have ${credits}`); return; }
+        if (isSegment ? !segmentId : phones.length === 0) {
+            toast.error(isSegment ? "Select a segment" : "Add at least one phone number");
+            return;
+        }
+        // Segment recipient count is an estimate (resolved server-side), so only
+        // hard-block on credits for client-resolved audiences.
+        if (!isSegment && totalCredits > credits) { toast.error(`Not enough credits. Need ${totalCredits}, have ${credits}`); return; }
 
         setCreating(true);
         const res = await msgPost("/campaigns", {
@@ -50,6 +64,8 @@ export default function NewCampaignPage() {
             message: message.trim(),
             audience_type: audienceType,
             phones,
+            segment_id: isSegment ? segmentId : undefined,
+            segment_name: isSegment ? segmentName : undefined,
             scheduled_at: scheduleEnabled && scheduledAt ? new Date(scheduledAt).toISOString() : null,
         });
 
@@ -106,7 +122,7 @@ export default function NewCampaignPage() {
                         </div>
                         <SmsPreview
                             text={message}
-                            note={`This exact message will be sent to all ${phones.length || 0} recipients.`}
+                            note={`This exact message will be sent to all ${recipientCount || 0} recipients${isSegment ? " in the segment" : ""}.`}
                         />
                     </div>
                 </CardContent>
@@ -134,8 +150,8 @@ export default function NewCampaignPage() {
                     <h3 className="text-sm font-medium mb-2">Summary</h3>
                     <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
-                            <p className="text-2xl font-bold">{phones.length}</p>
-                            <p className="text-xs text-gray-500">Recipients</p>
+                            <p className="text-2xl font-bold">{recipientCount}</p>
+                            <p className="text-xs text-gray-500">Recipients{isSegment ? " (est.)" : ""}</p>
                         </div>
                         <div>
                             <p className="text-2xl font-bold">{totalCredits}</p>
@@ -151,7 +167,7 @@ export default function NewCampaignPage() {
 
             {/* Create */}
             <div className="flex justify-end">
-                <Button onClick={handleCreate} disabled={creating || phones.length === 0}>
+                <Button onClick={handleCreate} disabled={creating || !hasAudience}>
                     <Send className="h-4 w-4 mr-1" />
                     {creating ? "Creating..." : scheduleEnabled ? "Schedule Campaign" : "Create & Send"}
                 </Button>

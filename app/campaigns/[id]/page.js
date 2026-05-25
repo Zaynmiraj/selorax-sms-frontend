@@ -11,7 +11,8 @@ import {
 } from "../../../components/ui/table";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { ArrowLeft, Send, X, Users, CheckCircle, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, Send, X, Users, CheckCircle, XCircle, Clock, Target } from "lucide-react";
+import { audienceLabel } from "../../../lib/audience";
 
 const STATUS_COLORS = {
     draft: "bg-gray-100 text-gray-700",
@@ -89,9 +90,12 @@ export default function CampaignDetailPage() {
                         <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4" /></Button>
                     </Link>
                     <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <h2 className="text-lg font-semibold">{campaign.name}</h2>
                             <Badge className={STATUS_COLORS[campaign.status]}>{campaign.status}</Badge>
+                            <Badge className="bg-slate-100 text-slate-600 flex items-center gap-1">
+                                <Target className="h-3 w-3" />{audienceLabel(campaign)}
+                            </Badge>
                         </div>
                         <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{campaign.message}</p>
                     </div>
