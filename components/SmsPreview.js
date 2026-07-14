@@ -19,9 +19,13 @@ export const SAMPLE_VALUES = {
   customer_phone: "01712345678",
   customer_email: "rahim@example.com",
   total: "1,250",
+  grand_total: "1,250",
   status: "cancelled",
   tracking_id: "SFD-78291",
   store_name: "My Store",
+  pay_link: "https://mystore.com/pay/a1b2c3",
+  outstanding_amount: "760",
+  gateway: "shurjopay",
 };
 
 export function renderTemplate(text, values = {}) {

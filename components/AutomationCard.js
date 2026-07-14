@@ -27,6 +27,7 @@ const EVENT_DESCRIPTIONS = {
   "order.cancelled": "When the order is cancelled.",
   "order.refunded": "When the order is returned or refunded.",
   "order.payment_received": "When payment for the order is received.",
+  "order.payment_recovery": "When a buyer's online payment attempt fails — send them the pay-link so they can retry without placing a new order.",
   "customer.welcome": "When a new customer is created.",
   "customer.updated": "When a customer's details are updated.",
 };
