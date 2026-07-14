@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { msgGet } from "../../lib/api";
 import { Skeleton } from "../../components/ui/skeleton";
 import AutomationCard from "../../components/AutomationCard";
-import { Zap, ShoppingBag, User, Sparkles } from "lucide-react";
+import { Zap, ShoppingBag, User, Sparkles, CreditCard } from "lucide-react";
 
 export default function AutomationsPage() {
   const queryClient = useQueryClient();
@@ -17,6 +17,7 @@ export default function AutomationsPage() {
   const variables = data?.data?.variables || {};
 
   const orderEvents = automations.filter((a) => a.event_group === "order");
+  const paymentEvents = automations.filter((a) => a.event_group === "payment");
   const customerEvents = automations.filter((a) => a.event_group === "customer");
   const activeCount = automations.filter((a) => a.is_active).length;
   const total = automations.length;
@@ -102,6 +103,29 @@ export default function AutomationsPage() {
         </div>
       </section>
 
+      {/* Payment Events */}
+      {paymentEvents.length > 0 && (
+        <section>
+          <SectionHeader
+            icon={CreditCard}
+            tone="emerald"
+            title="Payment Events"
+            active={paymentEvents.filter((a) => a.is_active).length}
+            total={paymentEvents.length}
+          />
+          <div className="space-y-3">
+            {paymentEvents.map((a) => (
+              <AutomationCard
+                key={a.automation_id}
+                automation={a}
+                variables={variables.payment || []}
+                onSaved={handleSaved}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Customer Events */}
       <section>
         <SectionHeader
@@ -130,6 +154,7 @@ function SectionHeader({ icon: Icon, title, active, total, tone = "blue" }) {
   const toneMap = {
     blue: "from-blue-500 to-indigo-500",
     violet: "from-violet-500 to-purple-500",
+    emerald: "from-emerald-500 to-teal-500",
   };
   return (
     <div className="mb-3 flex items-center justify-between">

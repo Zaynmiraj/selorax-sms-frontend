@@ -11,7 +11,7 @@ import { Skeleton } from "../../components/ui/skeleton";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "../../components/ui/table";
-import { Search, ChevronLeft, ChevronRight, MessageSquare, RotateCw } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, MessageSquare, RotateCw, CheckCircle2 } from "lucide-react";
 import RetryDialog from "../../components/RetryDialog";
 
 export default function HistoryPage() {
@@ -41,8 +41,14 @@ export default function HistoryPage() {
   const total = data?.data?.total || 0;
   const totalPages = Math.ceil(total / 25);
 
-  // Failed rows on the current page — the pool for select-all + bulk retry.
-  const failedOnPage = useMemo(() => logs.filter((l) => l.status === "failed"), [logs]);
+  // Failed rows on the current page that haven't already been retried — the pool
+  // for select-all + bulk retry. A row with `retried_by_log_id` set has a newer
+  // send already accounting for it; retrying it again would double-charge and
+  // re-send the same message.
+  const failedOnPage = useMemo(
+    () => logs.filter((l) => l.status === "failed" && !l.retried_by_log_id),
+    [logs],
+  );
   const failedIdsOnPage = useMemo(() => failedOnPage.map((l) => l.log_id), [failedOnPage]);
   const allFailedSelected = failedIdsOnPage.length > 0 && failedIdsOnPage.every((id) => selectedIds.has(id));
 
@@ -243,10 +249,12 @@ export default function HistoryPage() {
                 <TableBody>
                   {logs.map((log) => {
                     const isFailed = log.status === "failed";
+                    const alreadyRetried = !!log.retried_by_log_id;
+                    const retrySucceeded = alreadyRetried && log.retried_status === "sent";
                     return (
                       <TableRow key={log.log_id}>
                         <TableCell>
-                          {isFailed && (
+                          {isFailed && !alreadyRetried && (
                             <input
                               type="checkbox"
                               checked={selectedIds.has(log.log_id)}
@@ -271,7 +279,20 @@ export default function HistoryPage() {
                           {new Date(log.created_at).toLocaleString("en-BD")}
                         </TableCell>
                         <TableCell>
-                          {isFailed && (
+                          {isFailed && alreadyRetried && (
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                                retrySucceeded
+                                  ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                                  : "border-gray-300 bg-gray-50 text-gray-600"
+                              }`}
+                              title={`Retried on ${new Date(log.retried_at).toLocaleString("en-BD")}`}
+                            >
+                              <CheckCircle2 className="h-3 w-3" />
+                              {retrySucceeded ? "Retried" : "Retry attempted"}
+                            </span>
+                          )}
+                          {isFailed && !alreadyRetried && (
                             <Button
                               variant="outline"
                               size="sm"
