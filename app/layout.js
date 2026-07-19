@@ -4,10 +4,10 @@ import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/reac
 import { Toaster } from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { AppBridgeProvider } from "../contexts/AppBridgeContext";
-import MessagingSidebar from "../components/MessagingSidebar";
-import { LogoIcon } from "../components/Logo";
-import { msgGet } from "../lib/api";
+import { AppBridgeProvider } from "@/contexts/AppBridgeContext";
+import MessagingSidebar from "@/components/MessagingSidebar";
+import { LogoIcon } from "@/components/Logo";
+import { msgGet } from "@/lib/api";
 import {
   addPendingTopupCharge,
   clearPendingTopupCharge,
@@ -15,7 +15,7 @@ import {
   isCreditedChargeStatus,
   isTerminalFailedChargeStatus,
   normalizePaymentStatus,
-} from "../lib/payment-return-state.mjs";
+} from "@/lib/payment-return-state.mjs";
 
 function PaymentReturnHandler() {
   const pathname = usePathname();
@@ -171,9 +171,14 @@ export default function RootLayout({ children }) {
     },
   }));
 
+  // The /admin panel is a standalone owner surface with its own auth + chrome
+  // (app/admin/layout.js). It must NOT get the embedded store app's AppBridge or
+  // AppShell — and it is never loaded inside the dashboard iframe. Exclude it here.
+  const isAdmin = pathname?.startsWith("/admin");
+
   // If in iframe: ALWAYS wrap with AppBridgeProvider (even on "/")
   // If standalone: only wrap non-landing pages
-  const needsAuth = !isLanding || isIframe;
+  const needsAuth = !isAdmin && (!isLanding || isIframe);
 
   return (
     <html lang="en">

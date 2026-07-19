@@ -1,7 +1,7 @@
 "use client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { msgGet } from "../../lib/api";
-import { Skeleton } from "../../components/ui/skeleton";
+import { msgGet } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -9,10 +9,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../components/ui/table";
-import { Card, CardContent } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import SendSmsForm from "../../components/SendSmsForm";
+} from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import SendSmsForm from "@/components/SendSmsForm";
 
 export default function SendPage() {
   const queryClient = useQueryClient();

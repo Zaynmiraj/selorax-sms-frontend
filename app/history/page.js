@@ -2,17 +2,17 @@
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { msgGet, msgPost } from "../../lib/api";
-import { Card, CardContent } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import { Skeleton } from "../../components/ui/skeleton";
+import { msgGet, msgPost } from "@/lib/api";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "../../components/ui/table";
+} from "@/components/ui/table";
 import { Search, ChevronLeft, ChevronRight, MessageSquare, RotateCw, CheckCircle2 } from "lucide-react";
-import RetryDialog from "../../components/RetryDialog";
+import RetryDialog from "@/components/RetryDialog";
 
 export default function HistoryPage() {
   const queryClient = useQueryClient();

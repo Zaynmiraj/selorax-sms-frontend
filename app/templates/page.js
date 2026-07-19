@@ -1,8 +1,8 @@
 "use client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { msgGet } from "../../lib/api";
-import { Skeleton } from "../../components/ui/skeleton";
-import TemplateEditor from "../../components/TemplateEditor";
+import { msgGet } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import TemplateEditor from "@/components/TemplateEditor";
 
 const EVENT_TOPICS = [
   "order.confirmed",

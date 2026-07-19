@@ -2,9 +2,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { msgGet } from "../../lib/api";
-import { Card, CardContent } from "../../components/ui/card";
-import { Skeleton } from "../../components/ui/skeleton";
+import { msgGet } from "@/lib/api";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -12,9 +12,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../components/ui/table";
-import { Badge } from "../../components/ui/badge";
-import TopUpDialog from "../../components/TopUpDialog";
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import TopUpDialog from "@/components/TopUpDialog";
 import {
   MessageSquare,
   Send,

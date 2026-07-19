@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { msgGet, msgPost } from "../../lib/api";
-import { Skeleton } from "../../components/ui/skeleton";
-import { Button } from "../../components/ui/button";
-import CampaignCard from "../../components/CampaignCard";
+import { msgGet, msgPost } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import CampaignCard from "@/components/CampaignCard";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { Plus, MessageSquare } from "lucide-react";
