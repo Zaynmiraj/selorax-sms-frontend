@@ -75,7 +75,7 @@ export function RequireSmsAdmin({ children, superAdminOnly = false }) {
 
   useEffect(() => {
     if (isLoading) return;
-    if (!admin) {
+    if (!admin || admin.has_password === false) {
       const from = encodeURIComponent(pathname || "/admin");
       router.replace(`/admin/login?from=${from}`);
     } else if (superAdminOnly && !isSuperAdmin) {
@@ -83,7 +83,7 @@ export function RequireSmsAdmin({ children, superAdminOnly = false }) {
     }
   }, [admin, isLoading, isSuperAdmin, superAdminOnly, pathname, router]);
 
-  if (isLoading || !admin || (superAdminOnly && !isSuperAdmin)) {
+  if (isLoading || !admin || admin.has_password === false || (superAdminOnly && !isSuperAdmin)) {
     return <FullScreenLoader />;
   }
   return children;
