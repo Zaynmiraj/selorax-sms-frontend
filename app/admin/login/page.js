@@ -2,11 +2,11 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { LogoIcon } from "../../../components/Logo";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { useSmsAdmin } from "../../../contexts/SmsAdminContext";
-import { adminRequestOtp, adminVerifyOtp, adminForgotPassword, adminLoginWithPassword, adminSetPassword } from "../../../lib/adminApi";
+import { LogoIcon } from "@/components/Logo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useSmsAdmin } from "@/contexts/SmsAdminContext";
+import { adminRequestOtp, adminVerifyOtp, adminForgotPassword, adminLoginWithPassword, adminSetPassword } from "@/lib/adminApi";
 
 function LoginView() {
   const router = useRouter();

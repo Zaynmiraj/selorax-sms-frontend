@@ -3,14 +3,14 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Users, Trash2, Plus, ShieldCheck } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "../../../../components/ui/card";
-import { Button } from "../../../../components/ui/button";
-import { Input } from "../../../../components/ui/input";
-import { Badge } from "../../../../components/ui/badge";
-import { Switch } from "../../../../components/ui/switch";
-import { Skeleton } from "../../../../components/ui/skeleton";
-import { RequireSmsAdmin, useSmsAdmin } from "../../../../contexts/SmsAdminContext";
-import { adminGet, adminPost, adminPatch, adminDelete } from "../../../../lib/adminApi";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
+import { RequireSmsAdmin, useSmsAdmin } from "@/contexts/SmsAdminContext";
+import { adminGet, adminPost, adminPatch, adminDelete } from "@/lib/adminApi";
 
 const KEY = ["admin-admins"];
 

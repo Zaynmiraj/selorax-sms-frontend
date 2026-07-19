@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollText, ShieldCheck } from "lucide-react";
-import { Card, CardContent } from "../../../../components/ui/card";
-import { Badge } from "../../../../components/ui/badge";
-import { Skeleton } from "../../../../components/ui/skeleton";
-import { adminGet } from "../../../../lib/adminApi";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { adminGet } from "@/lib/adminApi";
 
 function StatusBadge({ status }) {
   return status === "sent" ? <Badge variant="success">sent</Badge> : <Badge variant="destructive">failed</Badge>;
@@ -22,25 +22,51 @@ function LogSkeleton() {
 
 function StoreLogs() {
   const [status, setStatus] = useState("");
+  const [storeId, setStoreId] = useState("");
+  const [topic, setTopic] = useState("");
+
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-logs-store", status],
-    queryFn: () => adminGet(`/logs/store?limit=100${status ? `&status=${status}` : ""}`),
+    queryKey: ["admin-logs-store", status, storeId, topic],
+    queryFn: () => {
+      const p = new URLSearchParams();
+      p.set("limit", "100");
+      if (status) p.set("status", status);
+      if (storeId) p.set("store_id", storeId);
+      if (topic) p.set("event_topic", topic);
+      return adminGet(`/logs/store?${p.toString()}`);
+    },
   });
   const logs = data?.logs || [];
 
   return (
     <Card>
-      <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-3">
-        <span className="text-sm font-medium text-gray-700">Customer SMS · all stores</span>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="h-9 rounded-xl border border-gray-200 bg-gray-50/50 px-3 text-[13px] text-gray-800 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-        >
-          <option value="">All statuses</option>
-          <option value="sent">Sent</option>
-          <option value="failed">Failed</option>
-        </select>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3">
+        <span className="text-sm font-medium text-gray-700">Customer SMS</span>
+        <div className="flex flex-wrap gap-2">
+          <input
+            type="number"
+            placeholder="Store ID..."
+            value={storeId}
+            onChange={(e) => setStoreId(e.target.value)}
+            className="h-9 w-32 rounded-xl border border-gray-200 bg-gray-50/50 px-3 text-[13px] text-gray-800 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+          />
+          <input
+            type="text"
+            placeholder="Topic (e.g. order.created)..."
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            className="h-9 w-48 rounded-xl border border-gray-200 bg-gray-50/50 px-3 text-[13px] text-gray-800 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+          />
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="h-9 rounded-xl border border-gray-200 bg-gray-50/50 px-3 text-[13px] text-gray-800 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+          >
+            <option value="">All statuses</option>
+            <option value="sent">Sent</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
       </div>
       <CardContent className="p-0">
         {isLoading ? (

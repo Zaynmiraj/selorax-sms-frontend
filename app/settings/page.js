@@ -1,12 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { msgGet, msgPut } from "../../lib/api";
-import { Button } from "../../components/ui/button";
-import { Switch } from "../../components/ui/switch";
-import { Input } from "../../components/ui/input";
-import { Skeleton } from "../../components/ui/skeleton";
-import HelpSection from "../../components/HelpSection";
+import { msgGet, msgPut } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import HelpSection from "@/components/HelpSection";
 import toast from "react-hot-toast";
 import { Save, Settings as SettingsIcon, Zap, RefreshCw } from "lucide-react";
 

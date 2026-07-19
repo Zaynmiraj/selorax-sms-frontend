@@ -7,7 +7,7 @@ import {
   ArrowRight, CheckCircle, Clock, Users, BarChart3, Shield,
   Send, Sparkles, Target, Bell, ChevronRight,
 } from "lucide-react";
-import { LogoIcon, LogoFull } from "../components/Logo";
+import { LogoIcon, LogoFull } from "@/components/Logo";
 
 /* ─── Animated counter hook ─── */
 function useCounter(target, duration = 2000) {

@@ -1,8 +1,8 @@
 "use client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { msgGet } from "../../lib/api";
-import { Skeleton } from "../../components/ui/skeleton";
-import AutomationCard from "../../components/AutomationCard";
+import { msgGet } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import AutomationCard from "@/components/AutomationCard";
 import { Zap, ShoppingBag, User, Sparkles, CreditCard } from "lucide-react";
 
 export default function AutomationsPage() {

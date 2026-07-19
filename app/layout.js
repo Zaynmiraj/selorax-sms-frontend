@@ -4,10 +4,10 @@ import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/reac
 import { Toaster } from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { AppBridgeProvider } from "../contexts/AppBridgeContext";
-import MessagingSidebar from "../components/MessagingSidebar";
-import { LogoIcon } from "../components/Logo";
-import { msgGet } from "../lib/api";
+import { AppBridgeProvider } from "@/contexts/AppBridgeContext";
+import MessagingSidebar from "@/components/MessagingSidebar";
+import { LogoIcon } from "@/components/Logo";
+import { msgGet } from "@/lib/api";
 import {
   addPendingTopupCharge,
   clearPendingTopupCharge,
@@ -15,7 +15,7 @@ import {
   isCreditedChargeStatus,
   isTerminalFailedChargeStatus,
   normalizePaymentStatus,
-} from "../lib/payment-return-state.mjs";
+} from "@/lib/payment-return-state.mjs";
 
 function PaymentReturnHandler() {
   const pathname = usePathname();

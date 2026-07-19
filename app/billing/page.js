@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { msgGet } from "../../lib/api";
-import { Card, CardContent } from "../../components/ui/card";
-import { Skeleton } from "../../components/ui/skeleton";
+import { msgGet } from "@/lib/api";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -11,12 +11,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../components/ui/table";
-import { Button } from "../../components/ui/button";
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
-import WalletCard from "../../components/WalletCard";
-import TopUpDialog from "../../components/TopUpDialog";
-import { Badge } from "../../components/ui/badge";
+import WalletCard from "@/components/WalletCard";
+import TopUpDialog from "@/components/TopUpDialog";
+import { Badge } from "@/components/ui/badge";
 
 export default function BillingPage() {
   const queryClient = useQueryClient();

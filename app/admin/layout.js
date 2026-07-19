@@ -1,5 +1,5 @@
 "use client";
-import { SmsAdminProvider } from "../../contexts/SmsAdminContext";
+import { SmsAdminProvider } from "@/contexts/SmsAdminContext";
 
 // Root of the /admin section. Provides the admin auth context to both the public
 // login page and the protected panel. Renders raw (no store AppShell / AppBridge)
