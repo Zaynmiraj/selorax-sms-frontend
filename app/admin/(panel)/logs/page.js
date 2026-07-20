@@ -16,6 +16,12 @@ function fmt(ts) {
   try { return new Date(ts).toLocaleString(); } catch { return String(ts); }
 }
 
+function senderAttemptSummary(providerResponse) {
+  const attempts = providerResponse?.meta?.sender_attempts;
+  if (!Array.isArray(attempts) || attempts.length === 0) return null;
+  return attempts.map((attempt) => `${attempt.sender_id} ${attempt.outcome === "sent" ? "sent" : attempt.outcome === "invalid_sender_id" ? "rejected" : attempt.outcome}`).join(" → ");
+}
+
 function LogSkeleton() {
   return <div className="space-y-2 p-6">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>;
 }
@@ -82,6 +88,7 @@ function StoreLogs() {
                 <span className="flex-1 min-w-[160px] truncate text-gray-500">{l.message}</span>
                 <span className="text-gray-500">{l.store_name || `#${l.store_id}`}</span>
                 {l.event_topic && <Badge variant="secondary">{l.event_topic}</Badge>}
+                {senderAttemptSummary(l.provider_response) && <span className="text-xs text-gray-500">{senderAttemptSummary(l.provider_response)}</span>}
                 <span className="text-xs text-gray-400">{fmt(l.created_at)}</span>
               </div>
             ))}

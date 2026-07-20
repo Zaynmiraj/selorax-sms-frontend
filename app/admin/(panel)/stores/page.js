@@ -91,7 +91,7 @@ export default function StoresPage() {
   const { data: sidData } = useQuery({ queryKey: ["admin-sender-ids"], queryFn: () => adminGet("/sender-ids") });
 
   const stores = storesData?.stores || [];
-  const globalDefault = storesData?.global_default || null;
+  const globalSenderIds = storesData?.global_sender_ids || [];
   const activeSenderIds = (sidData?.sender_ids || []).filter((s) => s.is_active);
 
   const assignMut = useMutation({
@@ -139,8 +139,8 @@ export default function StoresPage() {
           Stores
         </h1>
         <p className="text-sm text-gray-500">
-          Every store using the app. Assign each a sender ID, or leave on the global default
-          {globalDefault ? ` (${globalDefault})` : " (none set)"}.
+          Every store using the app. Assign a sender ID, or use the global fallback pool
+          {globalSenderIds.length ? ` (${globalSenderIds.map((sender) => `#${sender.global_priority} ${sender.value}`).join(", ")})` : " (none configured)"}.
         </p>
       </div>
 
@@ -200,9 +200,9 @@ export default function StoresPage() {
 
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-400">Sends as</span>
-                    <span className="font-mono text-xs text-gray-700">{s.effective_sender_id || "—"}</span>
+                    <span className="font-mono text-xs text-gray-700">{(s.sender_attempt_order || []).join(" → ") || "—"}</span>
                     {!s.assigned_sender_id && s.effective_sender_id && (
-                      <Badge variant="secondary">default</Badge>
+                      <Badge variant="secondary">global pool</Badge>
                     )}
                   </div>
 
@@ -212,9 +212,8 @@ export default function StoresPage() {
                     onChange={(e) => assignMut.mutate({ storeId: s.store_id, value: e.target.value })}
                     className="h-9 rounded-xl border border-gray-200 bg-gray-50/50 px-3 text-[13px] text-gray-800 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                   >
-                    <option value="">Global default</option>
+                    <option value="">Use global fallback pool</option>
                     {activeSenderIds
-                      .filter(sid => sid.value !== globalDefault)
                       .map((sid) => (
                       <option key={sid.sender_id_pk} value={sid.value}>
                         {sid.value}{sid.label ? ` — ${sid.label}` : ""}
