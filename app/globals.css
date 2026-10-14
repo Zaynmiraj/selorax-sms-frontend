@@ -3,8 +3,18 @@
 @tailwind utilities;
 
 :root {
+  /* Always light: opt out of OS/browser dark mode and auto-darkening */
+  color-scheme: light only;
   --accent: 222 89% 55%;
   --accent-light: 222 89% 96%;
+}
+
+html {
+  background: #f8f9fb;
+}
+
+input, select, textarea, button {
+  color-scheme: light;
 }
 
 body {
