@@ -105,6 +105,12 @@ export default function HistoryPage() {
       let res;
       if (pendingRetryIds.length === 1) {
         res = await msgPost(`/logs/${pendingRetryIds[0]}/retry`, scheduled_at ? { scheduled_at } : {});
+        if (res?.code === "possibly_sent" && window.confirm(`${res.message}\n\nSend it again anyway?`)) {
+          res = await msgPost(`/logs/${pendingRetryIds[0]}/retry`, {
+            ...(scheduled_at ? { scheduled_at } : {}),
+            confirm_possibly_sent: true,
+          });
+        }
         if (res?.status === 200) {
           toast.success(scheduled_at ? "Retry scheduled." : "Retry sent.");
         } else if (res?.status === 402 || res?.code === "insufficient_balance") {

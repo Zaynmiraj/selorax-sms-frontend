@@ -14,7 +14,7 @@ const PRICING_KEY = ["admin-pricing"];
 export default function PricingPage() {
   const qc = useQueryClient();
   const { isSuperAdmin } = useSmsAdmin();
-  const { data, isLoading } = useQuery({ queryKey: PRICING_KEY, queryFn: () => adminGet("/pricing") });
+  const { data, isLoading, isError } = useQuery({ queryKey: PRICING_KEY, queryFn: () => adminGet("/pricing") });
   const [value, setValue] = useState("");
 
   const current = data?.default_unit_price;
@@ -50,6 +50,8 @@ export default function PricingPage() {
         <CardContent className="space-y-4">
           {isLoading ? (
             <Skeleton className="h-10 rounded-xl" />
+          ) : isError || current === undefined ? (
+            <p className="text-sm text-red-600">Could not load the current price. Reload the page to try again.</p>
           ) : (
             <form
               className="flex items-end gap-3"

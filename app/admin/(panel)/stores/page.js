@@ -13,6 +13,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { useSmsAdmin } from "@/contexts/SmsAdminContext";
 import { adminGet, adminPatch } from "@/lib/adminApi";
 import StorePriceForm from "@/components/admin/StorePriceForm";
+import { formatPrice } from "@/components/TopUpDialog";
 
 const STORES_KEY = ["admin-stores"];
 
@@ -89,7 +90,7 @@ function PriceModal({ store, defaultPrice, onClose }) {
         <p className="text-sm text-gray-500 mb-6">
           Store: <span className="font-medium text-gray-800">{store.name || `#${store.store_id}`}</span>
           <br />
-          Now: <span className="font-medium text-blue-600">৳{store.effective_unit_price}</span>
+          Now: <span className="font-medium text-blue-600">৳{formatPrice(store.effective_unit_price)}</span>
           {store.sms_unit_price == null ? " (default)" : " (own price)"}
         </p>
         <StorePriceForm store={store} defaultPrice={defaultPrice} onSaved={onClose} />
@@ -154,7 +155,7 @@ export default function StoresPage() {
         </h1>
         <p className="text-sm text-gray-500">
           Every store using the app, its SMS credits and its price per SMS for custom purchases
-          (default ৳{defaultPrice ?? "—"}). Sender IDs and gateways are managed per store in the
+          (default ৳{defaultPrice != null ? formatPrice(defaultPrice) : "—"}). Sender IDs and gateways are managed per store in the
           SeloraX Messages admin.
         </p>
       </div>
@@ -214,7 +215,7 @@ export default function StoresPage() {
                   </div>
 
                   <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <span>৳{s.effective_unit_price} / SMS</span>
+                    <span>৳{s.effective_unit_price != null ? formatPrice(s.effective_unit_price) : "—"} / SMS</span>
                     <Badge variant={s.sms_unit_price == null ? "secondary" : "success"}>
                       {s.sms_unit_price == null ? "default" : "own price"}
                     </Badge>

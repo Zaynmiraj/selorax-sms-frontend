@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { adminGet } from "@/lib/adminApi";
 import { useSmsAdmin } from "@/contexts/SmsAdminContext";
 import StorePriceForm from "@/components/admin/StorePriceForm";
+import { formatPrice } from "@/components/TopUpDialog";
 
 export default function StoreDetailsPage() {
   const params = useParams();
@@ -111,7 +112,9 @@ export default function StoreDetailsPage() {
               <span className="font-medium text-gray-700">
                 {store.sms_unit_price == null ? "Default price" : "Own price"}
               </span>
-              <span className="text-xl font-bold text-gray-900">৳{store.effective_unit_price}</span>
+              <span className="text-xl font-bold text-gray-900">
+                ৳{store.effective_unit_price != null ? formatPrice(store.effective_unit_price) : "—"}
+              </span>
             </div>
             {isSuperAdmin ? (
               <StorePriceForm key={String(store.sms_unit_price)} store={store} defaultPrice={storeData.default_unit_price} />

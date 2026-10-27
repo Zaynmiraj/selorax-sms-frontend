@@ -16,6 +16,11 @@ import toast from "react-hot-toast";
 // Only a display fallback: the store's real price comes from the wallet API
 // (custom_unit_price) and the server always charges its own price.
 const FALLBACK_SMS_UNIT_PRICE = 0.70;
+
+/** 0.7 → "0.70", 0.655 → "0.655" (at least 2, at most 4 decimals). */
+export function formatPrice(n) {
+  return Number(n).toFixed(4).replace(/0{1,2}$/, "");
+}
 const MIN_CUSTOM_SMS_COUNT = 15;
 
 export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = [], customUnitPrice }) {
@@ -48,7 +53,8 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
   const normalizedCustomCount = Number(customSmsCount);
   const hasValidCustomCount = Number.isInteger(normalizedCustomCount) && normalizedCustomCount >= MIN_CUSTOM_SMS_COUNT;
   const customTotalPrice = hasValidCustomCount
-    ? Number((normalizedCustomCount * unitPrice).toFixed(2))
+    ? // Same integer math the server charges with (prices have ≤ 4 decimals).
+      Math.round((normalizedCustomCount * Math.round(unitPrice * 10000)) / 100) / 100
     : 0;
   const purchaseLabel = selectedPkg
     ? `Buy ${selectedPkg.name} — ৳${Number(selectedPkg.total_price).toLocaleString()}`
@@ -181,7 +187,7 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-gray-900">Custom SMS quantity</h3>
-              <p className="text-xs text-gray-500">Buy exactly the number of SMS you need at ৳{unitPrice} per SMS. Minimum {MIN_CUSTOM_SMS_COUNT} SMS.</p>
+              <p className="text-xs text-gray-500">Buy exactly the number of SMS you need at ৳{formatPrice(unitPrice)} per SMS. Minimum {MIN_CUSTOM_SMS_COUNT} SMS.</p>
             </div>
             {hasValidCustomCount && !selectedPkg && (
               <div className="h-5 w-5 rounded-full bg-blue-600 flex items-center justify-center shrink-0">

@@ -22,7 +22,8 @@ function senderAttemptSummary(providerResponse) {
   if (providerResponse?.provider === "platform") {
     const parts = [];
     if (providerResponse.sender_id) parts.push(`as ${providerResponse.sender_id}`);
-    if (providerResponse.error) parts.push(providerResponse.error);
+    if (providerResponse.indeterminate) parts.push("possibly sent (timed out)");
+    else if (providerResponse.error) parts.push(providerResponse.error);
     return parts.join(" · ") || null;
   }
   const attempts = providerResponse?.meta?.sender_attempts;
