@@ -1,13 +1,12 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Radio, Store, ScrollText, Users, LogOut, LayoutDashboard } from "lucide-react";
+import { Store, ScrollText, Users, LogOut, LayoutDashboard } from "lucide-react";
 import { LogoIcon } from "../Logo";
 import { useSmsAdmin } from "../../contexts/SmsAdminContext";
 
 const NAV = [
   { label: "Dashboard", href: "/admin", exact: true, icon: LayoutDashboard },
-  { label: "Sender IDs", href: "/admin/sender-ids", icon: Radio },
   { label: "Stores", href: "/admin/stores", icon: Store },
   { label: "Logs", href: "/admin/logs", icon: ScrollText },
   { label: "Admins", href: "/admin/admins", icon: Users, superAdminOnly: true },

@@ -49,9 +49,8 @@ export default function HelpSection() {
                     <p>Available packages: 1,000 SMS, 5,000 SMS, 10,000 SMS with volume discounts.</p>
                     <p>Enable Auto-Renewal below to automatically buy a new package when credits run low.</p>
                 </HelpItem>
-                <HelpItem title="Using Your Own SMS Provider">
-                    <p>By default, SMS is sent through the SeloraX platform provider.</p>
-                    <p>You can use your own BulkSMS provider by enabling "Use Own Provider" in settings below and entering your API key and sender ID.</p>
+                <HelpItem title="Sender ID">
+                    <p>SMS are sent through SeloraX Messages. To send under your own brand name, contact SeloraX support to have a sender ID set up for your store.</p>
                 </HelpItem>
             </CardContent>
         </Card>

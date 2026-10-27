@@ -16,7 +16,15 @@ function fmt(ts) {
   try { return new Date(ts).toLocaleString(); } catch { return String(ts); }
 }
 
+// New rows (sent through SeloraX Messages) carry the sender actually used and,
+// on failure, an error code. Older rows carry the Anbernet sender attempts.
 function senderAttemptSummary(providerResponse) {
+  if (providerResponse?.provider === "platform") {
+    const parts = [];
+    if (providerResponse.sender_id) parts.push(`as ${providerResponse.sender_id}`);
+    if (providerResponse.error) parts.push(providerResponse.error);
+    return parts.join(" · ") || null;
+  }
   const attempts = providerResponse?.meta?.sender_attempts;
   if (!Array.isArray(attempts) || attempts.length === 0) return null;
   return attempts.map((attempt) => `${attempt.sender_id} ${attempt.outcome === "sent" ? "sent" : attempt.outcome === "invalid_sender_id" ? "rejected" : attempt.outcome}`).join(" → ");

@@ -1,21 +1,16 @@
 "use client";
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import toast from "react-hot-toast";
-import { Store, Coins, MessageSquare, ArrowLeft, RefreshCw, XCircle, CheckCircle } from "lucide-react";
+import { Coins, MessageSquare, ArrowLeft, RefreshCw, XCircle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSmsAdmin } from "@/contexts/SmsAdminContext";
-import { adminGet, adminPatch } from "@/lib/adminApi";
+import { adminGet } from "@/lib/adminApi";
 
 export default function StoreDetailsPage() {
   const params = useParams();
   const storeId = params.store_id;
-  const qc = useQueryClient();
-  const { isSuperAdmin } = useSmsAdmin();
 
   const STORE_KEY = ["admin-store", storeId];
   const LOGS_KEY = ["admin-store-logs", storeId];
@@ -25,23 +20,9 @@ export default function StoreDetailsPage() {
     queryFn: () => adminGet(`/stores/${storeId}`) 
   });
   
-  const { data: sidData } = useQuery({ 
-    queryKey: ["admin-sender-ids"], 
-    queryFn: () => adminGet("/sender-ids") 
-  });
-  
   const { data: logsData, isLoading: logsLoading } = useQuery({ 
     queryKey: LOGS_KEY, 
     queryFn: () => adminGet(`/logs/store?store_id=${storeId}&limit=10`) 
-  });
-
-  const assignMut = useMutation({
-    mutationFn: (value) => adminPatch(`/stores/${storeId}/sender-id`, { value }),
-    onSuccess: () => { 
-      toast.success("Sender ID updated."); 
-      qc.invalidateQueries({ queryKey: STORE_KEY }); 
-    },
-    onError: (e) => toast.error(e.message || "Could not update sender ID."),
   });
 
   if (storeLoading) {
@@ -63,7 +44,6 @@ export default function StoreDetailsPage() {
 
   const store = storeData.store;
   const logs = logsData?.logs || [];
-  const activeSenderIds = (sidData?.sender_ids || []).filter((s) => s.is_active);
 
   return (
     <div className="space-y-6">
@@ -108,33 +88,14 @@ export default function StoreDetailsPage() {
 
         <Card>
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg">Sender ID Assignment</CardTitle>
+            <CardTitle className="text-lg">Sender ID &amp; gateway</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Sender ID</label>
-              <select
-                value={store.assigned_sender_id || ""}
-                disabled={assignMut.isPending}
-                onChange={(e) => assignMut.mutate(e.target.value)}
-                className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-              >
-                <option value="">Use global fallback pool</option>
-                {activeSenderIds.map((sid) => (
-                  <option key={sid.sender_id_pk} value={sid.value}>
-                    {sid.value}{sid.label ? ` — ${sid.label}` : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="text-sm text-gray-500 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
-              <span className="block font-medium text-gray-700 mb-1">Sender attempt order:</span>
-              <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-800 font-mono">{(store.sender_attempt_order || []).join(" → ") || "—"}</code>
-              {!store.assigned_sender_id && store.effective_sender_id && (
-                <span className="block mt-1 text-xs">This store uses the global fallback pool. The next sender is tried only after Anbernet explicitly rejects the current sender ID.</span>
-              )}
-            </div>
+          <CardContent className="space-y-3 text-sm text-gray-600">
+            <p>
+              This store&apos;s SMS go out through SeloraX Messages. Its sender ID and gateway are set
+              there, per store: Admin → Organizations → SeloraX App → Partner stores (store #{store.store_id}).
+            </p>
+            <p className="text-xs text-gray-500">Credits are still managed here.</p>
           </CardContent>
         </Card>
       </div>
