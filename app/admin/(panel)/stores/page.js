@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/ui/pagination";
 import { useSmsAdmin } from "@/contexts/SmsAdminContext";
 import { adminGet, adminPatch } from "@/lib/adminApi";
+import StorePriceForm from "@/components/admin/StorePriceForm";
 
 const STORES_KEY = ["admin-stores"];
 
@@ -77,6 +78,26 @@ function CreditModal({ store, pending, onClose, onAdd }) {
   );
 }
 
+function PriceModal({ store, defaultPrice, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl relative">
+        <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-700">
+          <X className="h-5 w-5" />
+        </button>
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">Price per SMS</h3>
+        <p className="text-sm text-gray-500 mb-6">
+          Store: <span className="font-medium text-gray-800">{store.name || `#${store.store_id}`}</span>
+          <br />
+          Now: <span className="font-medium text-blue-600">৳{store.effective_unit_price}</span>
+          {store.sms_unit_price == null ? " (default)" : " (own price)"}
+        </p>
+        <StorePriceForm store={store} defaultPrice={defaultPrice} onSaved={onClose} />
+      </div>
+    </div>
+  );
+}
+
 export default function StoresPage() {
   const qc = useQueryClient();
   const { isSuperAdmin } = useSmsAdmin();
@@ -84,12 +105,14 @@ export default function StoresPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [creditModalStore, setCreditModalStore] = useState(null);
+  const [priceModalStore, setPriceModalStore] = useState(null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 15;
 
   const { data: storesData, isLoading } = useQuery({ queryKey: STORES_KEY, queryFn: () => adminGet("/stores") });
 
   const stores = storesData?.stores || [];
+  const defaultPrice = storesData?.default_unit_price;
 
   const creditMut = useMutation({
     mutationFn: ({ storeId, amount }) => adminPatch(`/stores/${storeId}/credits`, { mode: "add", amount }),
@@ -130,8 +153,9 @@ export default function StoresPage() {
           Stores
         </h1>
         <p className="text-sm text-gray-500">
-          Every store using the app, and its SMS credits. Sender IDs and gateways are managed per
-          store in the SeloraX Messages admin.
+          Every store using the app, its SMS credits and its price per SMS for custom purchases
+          (default ৳{defaultPrice ?? "—"}). Sender IDs and gateways are managed per store in the
+          SeloraX Messages admin.
         </p>
       </div>
 
@@ -189,6 +213,18 @@ export default function StoresPage() {
                     </div>
                   </div>
 
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <span>৳{s.effective_unit_price} / SMS</span>
+                    <Badge variant={s.sms_unit_price == null ? "secondary" : "success"}>
+                      {s.sms_unit_price == null ? "default" : "own price"}
+                    </Badge>
+                  </div>
+
+                  {isSuperAdmin && (
+                    <Button size="sm" variant="outline" onClick={() => setPriceModalStore(s)}>
+                      Set Price
+                    </Button>
+                  )}
                   {isSuperAdmin && (
                     <Button 
                       size="sm" 
@@ -215,6 +251,10 @@ export default function StoresPage() {
         </CardContent>
       </Card>
       
+      {priceModalStore && (
+        <PriceModal store={priceModalStore} defaultPrice={defaultPrice} onClose={() => setPriceModalStore(null)} />
+      )}
+
       {creditModalStore && (
         <CreditModal 
           store={creditModalStore}

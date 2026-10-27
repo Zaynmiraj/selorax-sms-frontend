@@ -7,10 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { adminGet } from "@/lib/adminApi";
+import { useSmsAdmin } from "@/contexts/SmsAdminContext";
+import StorePriceForm from "@/components/admin/StorePriceForm";
 
 export default function StoreDetailsPage() {
   const params = useParams();
   const storeId = params.store_id;
+  const { isSuperAdmin } = useSmsAdmin();
 
   const STORE_KEY = ["admin-store", storeId];
   const LOGS_KEY = ["admin-store-logs", storeId];
@@ -96,6 +99,25 @@ export default function StoreDetailsPage() {
               there, per store: Admin → Organizations → SeloraX App → Partner stores (store #{store.store_id}).
             </p>
             <p className="text-xs text-gray-500">Credits are still managed here.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Price per SMS</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span className="font-medium text-gray-700">
+                {store.sms_unit_price == null ? "Default price" : "Own price"}
+              </span>
+              <span className="text-xl font-bold text-gray-900">৳{store.effective_unit_price}</span>
+            </div>
+            {isSuperAdmin ? (
+              <StorePriceForm key={String(store.sms_unit_price)} store={store} defaultPrice={storeData.default_unit_price} />
+            ) : (
+              <p className="text-xs text-gray-500">Only a super admin can change prices.</p>
+            )}
           </CardContent>
         </Card>
       </div>

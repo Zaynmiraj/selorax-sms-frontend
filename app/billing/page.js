@@ -189,6 +189,7 @@ export default function BillingPage() {
         onOpenChange={setTopUpOpen}
         onSuccess={refreshAll}
         packages={packages}
+        customUnitPrice={wallet?.custom_unit_price}
       />
     </div>
   );

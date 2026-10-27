@@ -244,6 +244,7 @@ export default function MessagingDashboard() {
         onOpenChange={setTopUpOpen}
         onSuccess={refreshAll}
         packages={wallet?.packages || []}
+        customUnitPrice={wallet?.custom_unit_price}
       />
     </div>
   );

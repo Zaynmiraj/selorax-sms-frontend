@@ -13,10 +13,13 @@ import {
 } from "../lib/payment-return-state.mjs";
 import toast from "react-hot-toast";
 
-const CUSTOM_SMS_UNIT_PRICE = 0.70;
+// Only a display fallback: the store's real price comes from the wallet API
+// (custom_unit_price) and the server always charges its own price.
+const FALLBACK_SMS_UNIT_PRICE = 0.70;
 const MIN_CUSTOM_SMS_COUNT = 15;
 
-export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = [] }) {
+export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = [], customUnitPrice }) {
+  const unitPrice = Number(customUnitPrice) > 0 ? Number(customUnitPrice) : FALLBACK_SMS_UNIT_PRICE;
   const [selectedPkg, setSelectedPkg] = useState(null);
   const [customSmsCount, setCustomSmsCount] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,7 +48,7 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
   const normalizedCustomCount = Number(customSmsCount);
   const hasValidCustomCount = Number.isInteger(normalizedCustomCount) && normalizedCustomCount >= MIN_CUSTOM_SMS_COUNT;
   const customTotalPrice = hasValidCustomCount
-    ? Number((normalizedCustomCount * CUSTOM_SMS_UNIT_PRICE).toFixed(2))
+    ? Number((normalizedCustomCount * unitPrice).toFixed(2))
     : 0;
   const purchaseLabel = selectedPkg
     ? `Buy ${selectedPkg.name} — ৳${Number(selectedPkg.total_price).toLocaleString()}`
@@ -178,7 +181,7 @@ export default function TopUpDialog({ open, onOpenChange, onSuccess, packages = 
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-gray-900">Custom SMS quantity</h3>
-              <p className="text-xs text-gray-500">Buy exactly the number of SMS you need at ৳0.70 per SMS. Minimum {MIN_CUSTOM_SMS_COUNT} SMS.</p>
+              <p className="text-xs text-gray-500">Buy exactly the number of SMS you need at ৳{unitPrice} per SMS. Minimum {MIN_CUSTOM_SMS_COUNT} SMS.</p>
             </div>
             {hasValidCustomCount && !selectedPkg && (
               <div className="h-5 w-5 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
